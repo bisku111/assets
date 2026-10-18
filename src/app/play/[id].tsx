@@ -143,6 +143,13 @@ function PlayStage({
   });
 
   const [risultato, setRisultato] = useState<SessionResult | null>(null);
+  /**
+   * Altezza reale della corsia, misurata invece che calcolata da una
+   * percentuale dello schermo. Su un portatile una frazione fissa
+   * lascerebbe un terzo di schermo vuoto sotto la tastiera, e la
+   * tastiera non starebbe dove stanno le mani.
+   */
+  const [altezzaCorsia, setAltezzaCorsia] = useState(0);
 
   // Estensione mostrata: quella del brano, allargata di poco perche' una
   // nota incollata al bordo e' difficile da leggere.
@@ -199,7 +206,9 @@ function PlayStage({
   }
 
   const inPausa = view.frame.state === 'paused' && !view.frame.waitingFor;
-  const altezzaCorsia = Math.max(180, height * 0.4);
+  // La tastiera cresce con lo schermo ma entro limiti: troppo bassa non
+  // si colpisce, troppo alta ruba spazio alle note in arrivo.
+  const altezzaTastiera = Math.min(220, Math.max(130, height * 0.22));
   const errori = view.frame.live.wrong + view.frame.live.missed;
 
   return (
@@ -237,15 +246,22 @@ function PlayStage({
         {sectionId ? <Comando label="Loop" attivo={loop} onPress={onToggleLoop} /> : null}
       </View>
 
-      {/* ---- Note in arrivo ---- */}
-      <NoteHighway
-        notes={view.visibleNotes}
-        positionMs={view.frame.positionMs}
-        lookAheadMs={lookAheadMs}
-        fromMidi={estensione.from}
-        toMidi={estensione.to}
-        height={altezzaCorsia}
-      />
+      {/* ---- Note in arrivo: prendono tutto lo spazio che avanza ---- */}
+      <View
+        style={{ flex: 1, minHeight: 160 }}
+        onLayout={(e) => setAltezzaCorsia(e.nativeEvent.layout.height)}
+      >
+        {altezzaCorsia > 0 ? (
+          <NoteHighway
+            notes={view.visibleNotes}
+            positionMs={view.frame.positionMs}
+            lookAheadMs={lookAheadMs}
+            fromMidi={estensione.from}
+            toMidi={estensione.to}
+            height={altezzaCorsia}
+          />
+        ) : null}
+      </View>
 
       {/* ---- Riga del maestro ---- */}
       <View style={styles.feedback}>
@@ -281,7 +297,7 @@ function PlayStage({
           showNoteNames={mode === 'learn'}
           onPressKey={pressKey}
           onReleaseKey={releaseKey}
-          height={Math.max(120, height * 0.2)}
+          height={altezzaTastiera}
         />
       </View>
 
