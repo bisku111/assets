@@ -60,17 +60,21 @@ const passo = (nome, ok, extra = '') => {
 };
 
 /**
- * Clicca l'elemento con quell'etichetta che e' davvero in primo piano.
+ * Tocca l'elemento con quell'etichetta che e' davvero in primo piano.
  *
- * Serve perche' il navigatore a schede tiene montate anche le schermate
- * non visibili: piu' elementi hanno la stessa etichetta e solo uno
- * riceve il tocco.
+ * Due accorgimenti, entrambi dovuti a come funziona l'app vera e non a
+ * capricci del test:
  *
- * Il ritardo non e' un espediente: un tocco reale dura decine di
- * millisecondi, e con 0 ms il sistema di gesture di React Native Web non
- * fa in tempo ad assegnare il responder.
+ *  - il navigatore a schede tiene montate anche le schermate non
+ *    visibili, quindi piu' elementi hanno la stessa etichetta e solo uno
+ *    riceve il tocco: si sceglie quello che `elementFromPoint` conferma
+ *    essere in primo piano;
+ *  - si preme e si rilascia con una pausa in mezzo, invece di usare un
+ *    click istantaneo: un tocco reale dura decine di millisecondi, e il
+ *    sistema di gesture di React Native Web non assegna il responder a
+ *    un contatto di durata zero.
  */
-async function toccaVisibile(etichetta, { delay = 80 } = {}) {
+async function toccaVisibile(etichetta, { hold = 90 } = {}) {
   const tutti = page.getByLabel(etichetta);
   const quanti = await tutti.count();
   for (let i = 0; i < quanti; i++) {
@@ -88,7 +92,10 @@ async function toccaVisibile(etichetta, { delay = 80 } = {}) {
         )
       : false;
     if (inPrimoPiano) {
-      await elemento.click({ delay });
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.waitForTimeout(hold);
+      await page.mouse.up();
       return true;
     }
   }
@@ -167,6 +174,41 @@ try {
   const consiglio = bottoni.some((t) =>
     /Rallenta|Prova all|Ripeti|Sezione successiva|Due mani|Concludi|Solo mano/.test(t));
   passo('il maestro propone un passo successivo', consiglio, bottoni.slice(0, 3).join(' | '));
+
+  // ---- 10. Calibrazione del ritardo ------------------------------------
+  // "Esci" riporta alla scheda del brano: si torna indietro ancora una
+  // volta per ritrovare le schede principali.
+  await page.getByRole('button', { name: 'Esci' }).first().click({ delay: 60 });
+  await page.waitForTimeout(1000);
+  await page.goBack();
+  await page.waitForTimeout(1200);
+  await page.getByText('Profilo', { exact: true }).last().click({ force: true, delay: 60 });
+  await page.waitForTimeout(1000);
+  await toccaVisibile('Calibra il ritardo');
+  await page.waitForTimeout(1200);
+  passo('la calibrazione si apre dal profilo', await visibile(page.getByText('Calibrazione del ritardo')));
+
+  // Otto battiti a 80 bpm piu' quattro di preparazione: si batte a tempo
+  // sulla tastiera a schermo e si controlla che la misura esca.
+  await page.getByRole('button', { name: 'Avvia' }).first().click({ delay: 60 });
+  const intervallo = 60_000 / 80;
+  const hold = 50;
+  await page.waitForTimeout(intervallo * 4);
+  for (let i = 0; i < 8; i++) {
+    await toccaVisibile('DO4', { hold });
+    await page.waitForTimeout(intervallo - hold);
+  }
+  await page.waitForTimeout(1300);
+
+  // Il controllo deve distinguere una misura vera da uno stato di
+  // fallimento: "0 ms" accompagnato da "non ho registrato abbastanza
+  // note" e' un fallimento, e un test che lo accetta non serve a nulla.
+  const registrate = await page.getByText(/8 note registrate/).first().isVisible().catch(() => false);
+  passo('la calibrazione registra tutti i colpi', registrate);
+
+  const nonAbbastanza = await page.getByText(/abbastanza note/).first().isVisible().catch(() => false);
+  passo('la calibrazione produce una misura valida', !nonAbbastanza);
+  passo('la misura si puo salvare', await visibile(page.getByRole('button', { name: 'Salva' })));
 } catch (error) {
   passo('esecuzione senza eccezioni', false, String(error).split('\n')[0]);
 }

@@ -175,8 +175,17 @@ Transport ──posizione(ms)──▶ PracticeSession ──▶ NoteMatcher ─
   motivo per cui il pedale di risonanza non falsa il punteggio. Gestisce accordi,
   note extra, note mancanti e la latenza (`inputLatencyMs`).
   Tolleranze: IMPARA 400 ms · ESERCITATI 220 ms · SUONA 150 ms · PERFORMANCE 90 ms.
-- **Calibrazione latenza**: l'utente suona su un metronomo; si prende la
-  **mediana** degli scarti (robusta agli outlier), non la media.
+- **Calibrazione latenza**: l'utente suona su un metronomo (quattro battiti di
+  preparazione, otto misurati); si prende la **mediana** degli scarti, robusta
+  agli outlier, non la media. Ogni colpo è associato al battito *più vicino*,
+  non al successivo in ordine: così un colpo saltato non sfasa tutti gli altri.
+  La misura comprende sia il ritardo tecnico sia la tendenza personale di chi
+  suona — il ritardo del tasto non è osservabile senza un riferimento umano — e
+  **la schermata lo dichiara** invece di spacciare il numero per una misura
+  puramente tecnica, offrendo la correzione manuale.
+  Il riferimento del battito è una porta (`MetronomePort`): click udibile con
+  Web Audio su web, impulso tattile su mobile, perché il repository non
+  contiene file audio.
 
 **Pitch detection (microfono)** — `core/dsp`:
 1. gate su RMS (rumore ambientale);

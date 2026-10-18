@@ -35,7 +35,23 @@ accanto a te.
 | Android Studio | SDK 35+ — solo per build Android |
 
 Per provare l'app **non serve** né Xcode né Android Studio: `npm run web` la apre
-nel browser, dove funzionano anche MIDI e microfono (Chrome/Edge).
+nel browser, dove funzionano anche MIDI e microfono.
+
+### Collegare un pianoforte digitale
+
+Sul computer il percorso migliore è **browser + MIDI**: è preciso e non richiede
+alcun modulo nativo.
+
+| Browser | Pianoforte via MIDI | Microfono |
+|---|---|---|
+| Chrome, Edge | ✅ | ✅ |
+| Safari | ❌ non supporta la Web MIDI API | ✅ |
+
+Collega lo strumento via USB (i pianoforti digitali sono quasi sempre
+*class-compliant*: nessun driver da installare) oppure via Bluetooth MIDI. Poi
+scegli *Profilo → Come suoni → Tastiera MIDI*. Con il Bluetooth il ritardo
+arriva a un decimo di secondo: usa *Profilo → Calibra il ritardo* prima di
+studiare, altrimenti verrai giudicato in ritardo pur suonando a tempo.
 
 ---
 
@@ -182,7 +198,7 @@ Elenco onesto. Niente è simulato con dati finti.
 | Percorso didattico in 6 lezioni, a sblocco progressivo | ✅ |
 | Pagamenti | ⛔ non implementati. Schema e gating pronti, manca l'SDK di billing |
 | Accompagnamento audio ("suona con la base") | ⛔ non implementato: servono registrazioni, che il repository non contiene. Le quattro modalità di studio ci sono |
-| Calibrazione guidata della latenza | ⛔ schermata mancante; il calcolo (`core/dsp/latency.ts`) è pronto e testato, e il valore si imposta dal profilo |
+| Calibrazione guidata della latenza | ✅ metronomo + otto battiti; click udibile su web, impulso tattile su mobile |
 
 ---
 

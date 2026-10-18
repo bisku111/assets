@@ -1,4 +1,5 @@
 import { ScrollView, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DEFAULT_LATENCY_MS } from '../../core/dsp/latency';
 import type { InputPreference, SkillLevel } from '../../core/ports/repository';
@@ -24,6 +25,7 @@ const SORGENTI: Array<{ key: InputPreference; label: string; nota: string }> = [
 const OBIETTIVI = [5, 10, 20, 30];
 
 export default function Profile() {
+  const router = useRouter();
   const profile = useAppStore((s) => s.profile);
   const session = useAppStore((s) => s.session);
   const remote = useAppStore((s) => s.remote);
@@ -85,9 +87,15 @@ export default function Profile() {
               <Text variant="caption" tone="muted" style={{ marginTop: 2 }}>{s.nota}</Text>
             </Card>
           ))}
-          <Text variant="caption" tone="faint" style={{ marginTop: spacing.xs }}>
-            Compensazione del ritardo in uso: {profile.inputLatencyMs} ms.
-          </Text>
+          <Card onPress={() => router.push('/calibrate')} accessibilityLabel="Calibra il ritardo"
+            style={{ marginTop: spacing.sm, borderColor: colors.accent }}>
+            <Text variant="heading">Calibra il ritardo</Text>
+            <Text variant="caption" tone="muted" style={{ marginTop: 2, lineHeight: 19 }}>
+              Compensazione in uso: {profile.inputLatencyMs} ms. Suoni a tempo ma
+              l app ti segna in ritardo? Serve questa: e il caso tipico di un
+              pianoforte collegato via Bluetooth.
+            </Text>
+          </Card>
         </Gruppo>
 
         <Gruppo titolo="Privacy">
