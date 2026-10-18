@@ -41,6 +41,8 @@ export interface PracticeView {
   pressed: readonly number[];
   wrong: readonly number[];
   feedback: string | null;
+  /** Serve alla UI per dare la precedenza alle correzioni. */
+  feedbackKind: 'correct' | 'error' | null;
   inputStatus: InputStatus;
   /** Sorgente effettivamente in uso: puo' differire da quella preferita. */
   activeInput: InputSourceId;
@@ -74,6 +76,7 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
   const [pressed, setPressed] = useState<number[]>([]);
   const [wrong, setWrong] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedbackKind, setFeedbackKind] = useState<'correct' | 'error' | null>(null);
   const [inputStatus, setInputStatus] = useState<InputStatus>({ state: 'idle' });
   const [activeInput, setActiveInput] = useState<InputSourceId>('virtual-keyboard');
 
@@ -112,6 +115,7 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
           setPressed((current) => (current.includes(event.midi) ? current : [...current, event.midi]));
           const esito = session.handleInput(event);
           if (esito) {
+            setFeedbackKind(esito.kind === 'correct' ? 'correct' : 'error');
             setFeedback(
               esito.kind === 'correct'
                 ? liveFeedbackIt({ kind: 'correct' })
@@ -177,12 +181,13 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
   const resume = useCallback(() => session.resume(), [session]);
   const restart = useCallback(() => {
     setFeedback(null);
+    setFeedbackKind(null);
     session.restart();
   }, [session]);
   const finish = useCallback((): SessionResult => session.finish(), [session]);
 
   const view: PracticeView = {
-    frame, visibleNotes, expectedNow, pressed, wrong, feedback, inputStatus, activeInput,
+    frame, visibleNotes, expectedNow, pressed, wrong, feedback, feedbackKind, inputStatus, activeInput,
   };
 
   return { session, view, start, pause, resume, restart, finish, pressKey, releaseKey };

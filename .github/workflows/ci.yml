@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  verifica:
+    name: Typecheck e test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  database:
+    name: Migrazioni e Row Level Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Le migrazioni vengono applicate davvero e la suite verifica che
+      # le policy facciano quello che dicono. Non basta che l'SQL sia
+      # sintatticamente valido.
+      - run: ./scripts/test-db.sh
+
+  app:
+    name: Build e prova end-to-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx expo export --platform web --output-dir dist
+      - run: npx playwright install --with-deps chromium
+      # Apre l'app vera e ne percorre il flusso completo: onboarding,
+      # catalogo, tutorial, nota giusta, nota sbagliata, punteggio.
+      - run: node scripts/smoke-web.mjs dist

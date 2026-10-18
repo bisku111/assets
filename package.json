@@ -13,6 +13,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:db": "./scripts/test-db.sh",
+    "test:e2e": "expo export --platform web --output-dir dist && node scripts/smoke-web.mjs dist",
+    "verify:all": "./scripts/verify-all.sh",
     "verify": "npm run typecheck && npm test"
   },
   "dependencies": {

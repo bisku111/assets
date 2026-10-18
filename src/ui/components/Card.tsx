@@ -8,19 +8,32 @@ export interface CardProps extends ViewProps {
   accessibilityLabel?: string;
 }
 
-export function Card({ onPress, padded = true, style, children, ...rest }: CardProps) {
+/**
+ * Contenitore standard.
+ *
+ * Quando e' premibile, l'etichetta di accessibilita' sta SOLO sul
+ * Pressable: metterla anche sulla View interna creerebbe due nodi
+ * sovrapposti con lo stesso nome, che confondono gli screen reader e
+ * intercettano il tocco destinato al pulsante.
+ */
+export function Card({ onPress, padded = true, style, children, accessibilityLabel, ...rest }: CardProps) {
   const content = (
-    <View style={[styles.card, padded && styles.padded, style]} {...rest}>
+    <View
+      style={[styles.card, padded && styles.padded, style]}
+      {...(onPress ? {} : { accessibilityLabel })}
+      {...rest}
+    >
       {children}
     </View>
   );
 
   if (!onPress) return content;
+
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={rest.accessibilityLabel}
+      accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => (pressed ? styles.pressed : undefined)}
     >
       {content}

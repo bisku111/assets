@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { updateProfile } from '../../state/appStore';
 import type { SkillLevel } from '../../core/ports/repository';
-import { OnboardingStep, Option } from './OnboardingStep';
+import { OnboardingStep, Option } from '../../features/onboarding/OnboardingStep';
 
 const LIVELLI: Array<{ key: SkillLevel; title: string; subtitle: string }> = [
   { key: 'never_played', title: 'Non ho mai suonato', subtitle: 'Partiamo dalle cinque dita sulla posizione di DO.' },

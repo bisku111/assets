@@ -122,10 +122,29 @@ immediato — millisecondi, non ricompilazioni.
 ```bash
 npm run typecheck   # tsc --noEmit (strict)
 npm test            # Jest: progetto "core" (node) + progetto "app" (componenti)
-npm run verify      # typecheck + test: quello che gira in CI
-npm run test:db     # migrazioni + test RLS su Postgres temporaneo
+npm run test:db     # migrazioni + test RLS su un Postgres usa-e-getta
+npm run test:e2e    # build web + percorso completo dell'app in un browser vero
+npm run verify      # typecheck + test
+npm run verify:all  # tutto quanto sopra
 npm run lint
 ```
+
+Tre livelli di verifica, perche' rispondono a domande diverse:
+
+1. **Unitari** (`npm test`) — la logica e' corretta? Coprono teoria musicale,
+   notazione e validazione dei brani, trasporto, matching (accordi, note extra,
+   mancate, pedale, latenza), punteggio, coach, progressione, pitch detection
+   YIN su segnali sintetici, tracciamento note, parser MIDI, gamification,
+   archivio locale e la regola di dipendenza del core.
+2. **Database** (`npm run test:db`) — le policy fanno quello che dicono?
+   Applica davvero le migrazioni su Postgres e conta le righe visibili per
+   ruolo. Verificato che la suite fallisce se una policy viene indebolita.
+3. **End-to-end** (`npm run test:e2e`) — un utente riesce davvero a usarla?
+   Apre l'app nel browser e percorre primo avvio, onboarding, catalogo, scheda
+   brano, tutorial, nota giusta, nota sbagliata, punteggio e consiglio del
+   maestro. E' il test che ha trovato, fra gli altri, un difetto per cui in
+   modalita' IMPARA il messaggio "Prevista: MI — Suonata: RE" veniva coperto
+   dall'invito ad attendere.
 
 Il progetto `core` copre: teoria musicale, notazione e validazione dei brani,
 trasporto, matching (accordi, note extra, mancate, pedale, latenza), punteggio,

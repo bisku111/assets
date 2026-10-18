@@ -249,10 +249,18 @@ function PlayStage({
 
       {/* ---- Riga del maestro ---- */}
       <View style={styles.feedback}>
-        {view.frame.waitingFor ? (
+        {/*
+          Le correzioni hanno la precedenza sull'invito ad attendere: in
+          modalita' IMPARA il brano resta fermo, e se l'invito coprisse il
+          messaggio l'allievo vedrebbe "suona la nota indicata" senza mai
+          sapere quale nota ha sbagliato.
+        */}
+        {view.feedbackKind === 'error' && view.feedback ? (
+          <Text variant="heading" center tone="error">{view.feedback}</Text>
+        ) : view.frame.waitingFor ? (
           <Text variant="heading" tone="primary" center>Suona la nota indicata</Text>
         ) : view.feedback ? (
-          <Text variant="heading" center tone={view.feedback === 'Giusto' ? 'success' : 'error'}>
+          <Text variant="heading" center tone={view.feedbackKind === 'correct' ? 'success' : 'error'}>
             {view.feedback}
           </Text>
         ) : (

@@ -4,7 +4,7 @@ import { updateProfile, useAppStore } from '../../state/appStore';
 import { Button } from '../../ui/components/Button';
 import { Text } from '../../ui/components/Text';
 import { spacing } from '../../ui/theme';
-import { OnboardingStep, Option } from './OnboardingStep';
+import { OnboardingStep, Option } from '../../features/onboarding/OnboardingStep';
 
 export default function TasteStep() {
   const router = useRouter();

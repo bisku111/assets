@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { updateProfile } from '../../state/appStore';
-import { OnboardingStep, Option } from './OnboardingStep';
+import { OnboardingStep, Option } from '../../features/onboarding/OnboardingStep';
 
 const OBIETTIVI = [
   { minutes: 5, title: '5 minuti al giorno', subtitle: 'Poco ma tutti i giorni: funziona piu di un ora ogni tanto.' },
