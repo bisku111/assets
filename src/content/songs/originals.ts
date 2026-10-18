@@ -671,7 +671,119 @@ export const CAMPANE_DI_SERA: SongDef = {
   ],
 };
 
+// =====================================================================
+// 8. Fiume lento — il brano degli ARPEGGI.
+//
+//    Differenza dalle triadi di "Campane di sera": lì l'accordo era una
+//    forma ferma dentro una posizione di cinque dita, qui l'arpeggio
+//    copre l'ottava e la mano deve aprirsi. È il passo successivo, non
+//    lo stesso esercizio con un'altra faccia.
+//
+//    Due livelli che sono due modi diversi di usare un arpeggio:
+//    - Facile: lo arpeggia la DESTRA, una nota per movimento, mentre la
+//      sinistra tiene il basso. L'arpeggio è l'oggetto dello studio.
+//    - Intermedio: passa alla SINISTRA in crome continue e la destra ci
+//      canta sopra. È l'uso musicale vero dell'arpeggio.
+//
+//    Non è un brano da primo giorno: l'apertura di ottava fra pollice e
+//    mignolo va costruita. Per questo parte da Facile e non da
+//    Principiante.
+// =====================================================================
+
+/** Arpeggio ascendente della destra, una nota per movimento. */
+const arpDestra = (grave: string, terza: string, quinta: string, ottava: string) =>
+  `${grave}:1@1 ${terza}:1@2 ${quinta}:1@3 ${ottava}:1@5`;
+
+const FIUME_EM = arpDestra('MI4', 'SOL4', 'SI4', 'MI5');
+const FIUME_C = arpDestra('DO4', 'MI4', 'SOL4', 'DO5');
+const FIUME_G = arpDestra('RE4', 'SOL4', 'SI4', 'RE5');   // secondo rivolto
+const FIUME_D = arpDestra('RE4', 'FA#4', 'LA4', 'RE5');
+
+/** Basso tenuto: tutte le fondamentali stanno in una sola posizione. */
+const BASSO_EM = 'MI3:4@3';
+const BASSO_C = 'DO3:4@5';
+const BASSO_G = 'SOL3:4@1';
+const BASSO_D = 'RE3:4@4';
+
+/** Lo stesso arpeggio in crome alla sinistra, due volte per battuta. */
+const arpSinistra = (grave: string, terza: string, quinta: string, ottava: string) => {
+  const giro = `${grave}:0.5@5 ${terza}:0.5@4 ${quinta}:0.5@2 ${ottava}:0.5@1`;
+  return `${giro} ${giro}`;
+};
+
+const ARPS_EM = arpSinistra('MI2', 'SOL2', 'SI2', 'MI3');
+const ARPS_C = arpSinistra('DO3', 'MI3', 'SOL3', 'DO4');
+const ARPS_G = arpSinistra('SOL2', 'SI2', 'RE3', 'SOL3');
+const ARPS_D = arpSinistra('RE3', 'FA#3', 'LA3', 'RE4');
+
+/**
+ * La melodia dell'intermedio sta tutta fra LA4 e MI5: cinque dita
+ * ferme, perché la mano che deve pensare è l'altra.
+ */
+const FIUME_MELODIA =
+  'SI4:2@2 MI5:2@5 ' +
+  'RE5:2@4 DO5:2@3 ' +
+  'SI4:2@2 RE5:2@4 ' +
+  'LA4:3@1 SI4:1@2 ' +
+  'MI5:2@5 RE5:2@4 ' +
+  'DO5:2@3 SI4:2@2 ' +
+  'LA4:2@1 SI4:2@2 ' +
+  'MI5:4~@5';
+
+export const FIUME_LENTO: SongDef = {
+  id: 'song-fiume-lento',
+  slug: 'fiume-lento',
+  title: 'Fiume lento',
+  subtitle: 'Studio sugli arpeggi',
+  artistId: 'artist-maestro-originals',
+  artistName: 'Maestro Originals',
+  coverColors: ['#0E2E2B', '#2EC4B6'],
+  bpm: 76,
+  keySignature: 'Em',
+  isFree: true,
+  tags: ['arpeggi', 'due-mani', 'italiana'],
+  license: ORIGINAL_LICENSE,
+  arrangements: [
+    {
+      difficulty: 'easy',
+      suggestedStartRate: 0.6,
+      sections: [
+        {
+          id: 'a', kind: 'intro', name: 'Prima corrente',
+          right: `${FIUME_EM} ${FIUME_C} ${FIUME_G} ${FIUME_D}`,
+          left: `${BASSO_EM} ${BASSO_C} ${BASSO_G} ${BASSO_D}`,
+          chords: ['Em', 'C', 'G', 'D'],
+        },
+        {
+          id: 'b', kind: 'chorus', name: 'Il fiume largo', loopRecommended: true,
+          right: `${FIUME_EM} ${FIUME_C} ${FIUME_G} ${FIUME_D} ${FIUME_EM} ${FIUME_C} ${FIUME_G} ${FIUME_EM}`,
+          left: `${BASSO_EM} ${BASSO_C} ${BASSO_G} ${BASSO_D} ${BASSO_EM} ${BASSO_C} ${BASSO_G} ${BASSO_EM}`,
+          chords: ['Em', 'C', 'G', 'D', 'Em', 'C', 'G', 'Em'],
+        },
+        {
+          id: 'c', kind: 'outro', name: 'La riva',
+          right: `${FIUME_C} ${FIUME_G} ${FIUME_D} MI4@1+SOL4@3+SI4@5:4~`,
+          left: `${BASSO_C} ${BASSO_G} ${BASSO_D} MI3:4~@3`,
+          chords: ['C', 'G', 'D', 'Em'],
+        },
+      ],
+    },
+    {
+      difficulty: 'intermediate',
+      suggestedStartRate: 0.5,
+      sections: [
+        {
+          id: 'b', kind: 'chorus', name: 'Il fiume largo', loopRecommended: true,
+          right: FIUME_MELODIA,
+          left: `${ARPS_EM} ${ARPS_C} ${ARPS_G} ${ARPS_D} ${ARPS_EM} ${ARPS_C} ${ARPS_G} ${ARPS_EM}`,
+          chords: ['Em', 'C', 'G', 'D', 'Em', 'C', 'G', 'Em'],
+        },
+      ],
+    },
+  ],
+};
+
 export const ORIGINAL_SONGS: SongDef[] = [
-  PIANO_PIANO, VALZER_DOMENICA, ULTIMO_TRAM, CAMPANE_DI_SERA,
+  PIANO_PIANO, VALZER_DOMENICA, ULTIMO_TRAM, CAMPANE_DI_SERA, FIUME_LENTO,
   BALLATA_LUNGOMARE, NOTTE_DI_SETTEMBRE, ESTATE_A_RIMINI,
 ];
