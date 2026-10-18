@@ -565,6 +565,113 @@ export const ULTIMO_TRAM: SongDef = {
   ],
 };
 
+// =====================================================================
+// 7. Campane di sera — il brano delle TRIADI.
+//
+//    La mano destra suona solo accordi a tre note, uno per battuta,
+//    tenuti: è il modo in cui una triade si impara davvero, cioè come
+//    una forma unica della mano e non come tre note da trovare una
+//    alla volta.
+//
+//    Gli accordi sono rivoltati per condurre bene le voci: fra una
+//    triade e la successiva la mano si sposta pochissimo e due note su
+//    tre restano ferme. Si imparano così anche i rivolti, senza doverli
+//    spiegare: il pollice resta quasi sempre sul DO.
+//
+//    Diteggiatura 1-3-5 in posizione fondamentale, 1-2-5 nei rivolti,
+//    scritta nota per nota.
+// =====================================================================
+
+const TRIADE_DO = 'DO4@1+MI4@3+SOL4@5';      // fondamentale
+const TRIADE_MIM = 'MI4@1+SOL4@3+SI4@5';     // fondamentale
+const TRIADE_FA = 'DO4@1+FA4@2+LA4@5';       // secondo rivolto
+const TRIADE_SOL = 'RE4@1+SOL4@2+SI4@5';     // secondo rivolto
+
+/** La stessa triade sciolta: basso, terza, quinta, terza. */
+const sciolta = (grave: string, media: string, acuta: string, dGrave: number, dMedia: number, dAcuta: number) =>
+  `${grave}:1@${dGrave} ${media}:1@${dMedia} ${acuta}:1@${dAcuta} ${media}:1@${dMedia}`;
+
+const SCIOLTA_DO = sciolta('DO4', 'MI4', 'SOL4', 1, 3, 5);
+const SCIOLTA_MIM = sciolta('MI4', 'SOL4', 'SI4', 1, 3, 5);
+const SCIOLTA_FA = sciolta('DO4', 'FA4', 'LA4', 1, 2, 5);
+const SCIOLTA_SOL = sciolta('RE4', 'SOL4', 'SI4', 1, 2, 5);
+
+/** Basso e quinta (o terza), sempre sotto il DO della mano destra. */
+const BASSO_DO = 'DO3:2@5 SOL3:2@1';
+const BASSO_MIM = 'MI3:2@5 SI3:2@1';
+const BASSO_FA = 'FA3:2@5 LA3:2@1';
+const BASSO_SOL = 'SOL3:2@5 SI3:2@1';
+
+export const CAMPANE_DI_SERA: SongDef = {
+  id: 'song-campane-di-sera',
+  slug: 'campane-di-sera',
+  title: 'Campane di sera',
+  subtitle: 'Accordi a tre note',
+  artistId: 'artist-maestro-originals',
+  artistName: 'Maestro Originals',
+  coverColors: ['#2A1D3D', '#9B7BD4'],
+  bpm: 80,
+  keySignature: 'C',
+  isFree: true,
+  tags: ['triadi', 'accordi', 'due-mani', 'principianti'],
+  license: ORIGINAL_LICENSE,
+  arrangements: [
+    {
+      difficulty: 'beginner',
+      suggestedStartRate: 0.6,
+      sections: [
+        {
+          id: 'a', kind: 'intro', name: 'Primo rintocco',
+          // Una triade per battuta, tenuta: c'è tutto il tempo di
+          // guardare la mano, che è il punto dell'esercizio.
+          right: `${TRIADE_DO}:4 ${TRIADE_MIM}:4 ${TRIADE_FA}:4 ${TRIADE_SOL}:4`,
+          left: 'DO3:4@5 MI3:4@3 FA3:4@2 SOL3:4@1',
+          chords: ['C', 'Em', 'F', 'G'],
+        },
+        {
+          id: 'b', kind: 'chorus', name: 'Le campane rispondono', loopRecommended: true,
+          right: `${TRIADE_DO}:4 ${TRIADE_FA}:4 ${TRIADE_SOL}:4 ${TRIADE_DO}:4`,
+          left: 'DO3:4@5 FA3:4@2 SOL3:4@1 DO3:4@5',
+          chords: ['C', 'F', 'G', 'C'],
+        },
+        {
+          id: 'c', kind: 'outro', name: 'Ultimo rintocco',
+          right: `${TRIADE_FA}:4 ${TRIADE_MIM}:4 ${TRIADE_SOL}:4 ${TRIADE_DO}:4~`,
+          left: 'FA3:4@2 MI3:4@3 SOL3:4@1 DO3:4~@5',
+          chords: ['F', 'Em', 'G', 'C'],
+        },
+      ],
+    },
+    {
+      difficulty: 'easy',
+      suggestedStartRate: 0.6,
+      sections: [
+        {
+          id: 'a', kind: 'intro', name: 'Primo rintocco',
+          // Le stesse triadi, ora sciolte: la forma della mano resta,
+          // cambia solo che le note arrivano una per volta.
+          right: `${SCIOLTA_DO} ${SCIOLTA_MIM} ${SCIOLTA_FA} ${SCIOLTA_SOL}`,
+          left: `${BASSO_DO} ${BASSO_MIM} ${BASSO_FA} ${BASSO_SOL}`,
+          chords: ['C', 'Em', 'F', 'G'],
+        },
+        {
+          id: 'b', kind: 'chorus', name: 'Le campane rispondono', loopRecommended: true,
+          right: `${SCIOLTA_DO} ${SCIOLTA_FA} ${SCIOLTA_SOL} ${SCIOLTA_DO}`,
+          left: `${BASSO_DO} ${BASSO_FA} ${BASSO_SOL} ${BASSO_DO}`,
+          chords: ['C', 'F', 'G', 'C'],
+        },
+        {
+          id: 'c', kind: 'outro', name: 'Ultimo rintocco',
+          right: `${SCIOLTA_FA} ${SCIOLTA_MIM} ${SCIOLTA_SOL} ${TRIADE_DO}:4~`,
+          left: `${BASSO_FA} ${BASSO_MIM} ${BASSO_SOL} DO3:4~@5`,
+          chords: ['F', 'Em', 'G', 'C'],
+        },
+      ],
+    },
+  ],
+};
+
 export const ORIGINAL_SONGS: SongDef[] = [
-  PIANO_PIANO, VALZER_DOMENICA, ULTIMO_TRAM, BALLATA_LUNGOMARE, NOTTE_DI_SETTEMBRE, ESTATE_A_RIMINI,
+  PIANO_PIANO, VALZER_DOMENICA, ULTIMO_TRAM, CAMPANE_DI_SERA,
+  BALLATA_LUNGOMARE, NOTTE_DI_SETTEMBRE, ESTATE_A_RIMINI,
 ];
