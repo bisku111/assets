@@ -450,6 +450,121 @@ export const VALZER_DOMENICA: SongDef = {
   ],
 };
 
+// =====================================================================
+// 6. Ultimo tram — ballata in RE minore, il secondo brano a due mani.
+//
+//    Carattere opposto al valzer: lento, quattro quarti, note lunghe.
+//    Entrambe le mani restano in una posizione fissa di cinque dita
+//    (destra RE4-LA4, sinistra DO3-SOL3) per tutto il livello
+//    principiante: non c'è un solo spostamento da imparare.
+//
+//    L'armatura di RE minore porta un bemolle, e il SIb dell'accordo
+//    di SOL minore si scrive bemolle, non LA#: è la tonalità a
+//    deciderlo, e lo spartito lo mostra così.
+// =====================================================================
+
+/** Basso sul primo movimento, bicordo sul terzo. */
+const ballata = (basso: string, bicordo: string) => `${basso}:2@5 ${bicordo}:2`;
+
+const TRAM_DM = ballata('RE3', 'FA3@3+LA3@1');
+const TRAM_F = ballata('FA3', 'LA3@3+DO4@1');
+const TRAM_C = ballata('DO3', 'MI3@3+SOL3@1');
+const TRAM_GM = ballata('SOL2', 'RE3@5+SIb3@1');
+
+const TRAM_MELODIA = {
+  // Dm – F – C – Dm
+  verse:
+    'RE4:1@1 FA4:1@3 LA4:2@5 ' +
+    'SOL4:1@4 FA4:1@3 MI4:2@2 ' +
+    'MI4:1@2 SOL4:1@4 MI4:2@2 ' +
+    'RE4:4@1',
+  // Gm – F – C – Dm, due volte
+  chorus:
+    'SOL4:2@4 LA4:2@5 ' +
+    'LA4:1@5 SOL4:1@4 FA4:2@3 ' +
+    'MI4:2@2 SOL4:2@4 ' +
+    'FA4:3@3 MI4:1@2 ' +
+    'RE4:1@1 SOL4:1@4 LA4:2@5 ' +
+    'LA4:1@5 SOL4:1@4 FA4:1@3 MI4:1@2 ' +
+    'MI4:2@2 RE4:2@1 ' +
+    'RE4:4@1',
+  // F – C – Dm – Dm
+  outro:
+    'LA4:1@5 SOL4:1@4 FA4:2@3 ' +
+    'MI4:2@2 SOL4:2@4 ' +
+    'FA4:1@3 MI4:1@2 RE4:2@1 ' +
+    'RE4:4~@1',
+};
+
+export const ULTIMO_TRAM: SongDef = {
+  id: 'song-ultimo-tram',
+  slug: 'ultimo-tram',
+  title: 'Ultimo tram',
+  subtitle: 'Ballata in minore, due mani',
+  artistId: 'artist-maestro-originals',
+  artistName: 'Maestro Originals',
+  coverColors: ['#101C2E', '#3E6DA8'],
+  bpm: 72,
+  keySignature: 'Dm',
+  isFree: true,
+  tags: ['due-mani', 'italiana', 'ballata', 'principianti'],
+  license: ORIGINAL_LICENSE,
+  arrangements: [
+    {
+      difficulty: 'beginner',
+      suggestedStartRate: 0.6,
+      sections: [
+        {
+          id: 'verse', kind: 'verse', name: 'Strofa',
+          right: TRAM_MELODIA.verse,
+          // Una nota sola per battuta: la sinistra tiene l'armonia e
+          // basta, mentre la destra impara la melodia.
+          left: 'RE3:4@4 FA3:4@2 DO3:4@5 RE3:4@4',
+          chords: ['Dm', 'F', 'C', 'Dm'],
+        },
+        {
+          id: 'chorus', kind: 'chorus', name: 'Ritornello', loopRecommended: true,
+          right: TRAM_MELODIA.chorus,
+          left: 'SOL3:4@1 FA3:4@2 DO3:4@5 RE3:4@4 SOL3:4@1 FA3:4@2 DO3:4@5 RE3:4@4',
+          chords: ['Gm', 'F', 'C', 'Dm', 'Gm', 'F', 'C', 'Dm'],
+        },
+        {
+          id: 'outro', kind: 'outro', name: 'Capolinea',
+          right: TRAM_MELODIA.outro,
+          left: 'FA3:4@2 DO3:4@5 RE3:4@4 RE3:4~@4',
+          chords: ['F', 'C', 'Dm', 'Dm'],
+        },
+      ],
+    },
+    {
+      difficulty: 'easy',
+      suggestedStartRate: 0.6,
+      sections: [
+        {
+          id: 'verse', kind: 'verse', name: 'Strofa',
+          right: TRAM_MELODIA.verse,
+          left: `${TRAM_DM} ${TRAM_F} ${TRAM_C} ${TRAM_DM}`,
+          chords: ['Dm', 'F', 'C', 'Dm'],
+        },
+        {
+          id: 'chorus', kind: 'chorus', name: 'Ritornello', loopRecommended: true,
+          right: TRAM_MELODIA.chorus,
+          left:
+            `${TRAM_GM} ${TRAM_F} ${TRAM_C} ${TRAM_DM} ` +
+            `${TRAM_GM} ${TRAM_F} ${TRAM_C} ${TRAM_DM}`,
+          chords: ['Gm', 'F', 'C', 'Dm', 'Gm', 'F', 'C', 'Dm'],
+        },
+        {
+          id: 'outro', kind: 'outro', name: 'Capolinea',
+          right: TRAM_MELODIA.outro,
+          left: `${TRAM_F} ${TRAM_C} ${TRAM_DM} RE3:2@5 FA3@3+LA3@1:2~`,
+          chords: ['F', 'C', 'Dm', 'Dm'],
+        },
+      ],
+    },
+  ],
+};
+
 export const ORIGINAL_SONGS: SongDef[] = [
-  PIANO_PIANO, VALZER_DOMENICA, BALLATA_LUNGOMARE, NOTTE_DI_SETTEMBRE, ESTATE_A_RIMINI,
+  PIANO_PIANO, VALZER_DOMENICA, ULTIMO_TRAM, BALLATA_LUNGOMARE, NOTTE_DI_SETTEMBRE, ESTATE_A_RIMINI,
 ];
