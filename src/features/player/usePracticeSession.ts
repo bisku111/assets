@@ -155,11 +155,11 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
   }, [session, preferredInput, keyboard]);
 
   // ---- Dati derivati per il disegno ------------------------------------
-  const visibleNotes = useMemo(
-    () => session.visibleNotes(lookAheadMs),
-    // La posizione cambia ad ogni frame: e' lei a far scorrere la finestra.
-    [session, lookAheadMs, frame.positionMs],
-  );
+  // Niente memo: la finestra dipende dalla posizione, che cambia a ogni
+  // frame, e il calcolo e' proporzionale alle sole note visibili.
+  // Memorizzarlo richiederebbe di dichiarare una dipendenza che il
+  // calcolo non usa davvero, cioe' mentire al lettore.
+  const visibleNotes = session.visibleNotes(lookAheadMs);
 
   const expectedNow = useMemo(() => {
     const mappa = new Map<number, Hand>();

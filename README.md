@@ -126,7 +126,7 @@ npm run test:db     # migrazioni + test RLS su un Postgres usa-e-getta
 npm run test:e2e    # build web + percorso completo dell'app in un browser vero
 npm run verify      # typecheck + test
 npm run verify:all  # tutto quanto sopra
-npm run lint
+npm run lint        # ESLint, configurazione versionata nel repository
 ```
 
 Tre livelli di verifica, perche' rispondono a domande diverse:
@@ -179,7 +179,10 @@ Elenco onesto. Niente è simulato con dati finti.
 | Tastiera a schermo come sorgente di input reale | ✅ |
 | MIDI e microfono su **web** | ✅ reali (Web MIDI / Web Audio) |
 | MIDI e microfono su **iOS/Android** | ⛔ richiedono il modulo nativo `piano-io` (ARCHITECTURE.md §7.3). L'app lo dichiara all'utente e propone la tastiera a schermo |
+| Percorso didattico in 6 lezioni, a sblocco progressivo | ✅ |
 | Pagamenti | ⛔ non implementati. Schema e gating pronti, manca l'SDK di billing |
+| Accompagnamento audio ("suona con la base") | ⛔ non implementato: servono registrazioni, che il repository non contiene. Le quattro modalità di studio ci sono |
+| Calibrazione guidata della latenza | ⛔ schermata mancante; il calcolo (`core/dsp/latency.ts`) è pronto e testato, e il valore si imposta dal profilo |
 
 ---
 

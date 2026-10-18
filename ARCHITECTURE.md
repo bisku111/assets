@@ -45,7 +45,9 @@ Regola imposta dal committente: *mai fingere che una funzione sia reale*.
 | Tastiera virtuale come sorgente di input | ✅ reale | `adapters/midi/virtualKeyboard.ts` |
 | Ingresso MIDI/microfono su **iOS/Android** | ⛔ richiede modulo nativo (§7.3) | l'adapter riporta `unavailable` con motivo leggibile; **nessun dato finto** |
 | Catalogo, progressi, statistiche | ✅ reali (locale + Supabase) | `adapters/storage`, `adapters/supabase` |
+| Percorso didattico (6 lezioni a sblocco progressivo) | ✅ reale, testato | `core/learning/path`, `content/lessons` |
 | Pagamenti | ⛔ non implementati per scelta | schema DB e gating pronti (§9) |
+| Accompagnamento audio | ⛔ servono registrazioni, non incluse nel repository | le quattro modalità di studio ci sono |
 
 La tastiera virtuale non è un ripiego cosmetico: implementa la stessa
 `NoteInputPort` di MIDI e microfono, quindi su mobile l'esperienza completa
@@ -274,6 +276,13 @@ messaggio comprensibile con l'alternativa. Nessun mock silenzioso.
 - **Build**: EAS Build (`development` con dev-client per i moduli nativi,
   `preview` interno, `production` per gli store). `expo prebuild` genera
   `ios/` e `android/`, non versionati.
-- **Testing**: `npm run verify` (typecheck + Jest) e `npm run test:db`
-  (migrazioni + suite RLS su un Postgres usa-e-getta).
-- **CI**: GitHub Actions su push e pull request.
+- **Testing**, su tre livelli che rispondono a domande diverse:
+  1. `npm test` — la logica è corretta? 258 test sul core e sui componenti.
+  2. `npm run test:db` — le policy fanno quello che dicono? Le migrazioni
+     vengono applicate davvero su Postgres e si contano le righe visibili per
+     ruolo. Verificato che la suite fallisce se una policy viene indebolita.
+  3. `npm run test:e2e` — un utente riesce davvero a usarla? L'app viene
+     costruita e percorsa in un browser: onboarding, catalogo, tutorial, nota
+     giusta, nota sbagliata, punteggio, consiglio del maestro.
+  `npm run verify:all` esegue tutti e tre.
+- **CI**: GitHub Actions, un job per livello.

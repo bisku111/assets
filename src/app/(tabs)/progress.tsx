@@ -3,7 +3,6 @@ import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ACHIEVEMENTS, levelProgress } from '../../core/gamification/rules';
-import { timingTendencyIt } from '../../core/scoring/score';
 import { formatDuration } from '../../core/song/query';
 import { useAppStore } from '../../state/appStore';
 import { Card } from '../../ui/components/Card';

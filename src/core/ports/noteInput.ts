@@ -84,7 +84,6 @@ export function inputStatusMessageIt(status: InputStatus, source: InputSourceId)
         case 'platform-unsupported':
           return `${nome} non e' supportata su questo dispositivo. Puoi suonare sulla tastiera a schermo.`;
       }
-    // eslint-disable-next-line no-fallthrough
     case 'error':
       return `Qualcosa non ha funzionato con ${nome.toLowerCase()}. Puoi continuare con la tastiera a schermo.`;
   }

@@ -5,16 +5,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { welcomeBackIt } from '../../core/coach/coach';
 import { levelProgress } from '../../core/gamification/rules';
 import {
-  continueLearning, loadCatalog, minutesPracticedToday, progressForSong, useAppStore,
+  appStore, continueLearning, loadCatalog, minutesPracticedToday, progressForSong, useAppStore,
 } from '../../state/appStore';
 import { HomeRow } from '../../features/home/HomeRow';
+import { LessonPath } from '../../features/home/LessonPath';
 import { SongCard } from '../../features/catalog/SongCard';
 import { Card } from '../../ui/components/Card';
 import { ProgressBar } from '../../ui/components/ProgressBar';
 import { StatTile } from '../../ui/components/StatTile';
 import { Text } from '../../ui/components/Text';
 import { colors, spacing } from '../../ui/theme';
-import { appStore } from '../../state/appStore';
 
 /**
  * Home.
@@ -30,21 +30,34 @@ export default function Home() {
   const recentSessions = useAppStore((s) => s.recentSessions);
   const errore = useAppStore((s) => s.error);
 
-  const stato = appStore.getState();
-  const daRiprendere = useMemo(() => continueLearning(stato), [stato.progress, stato.songs]);
-  const minutiOggi = minutesPracticedToday(stato);
+  // Ogni valore derivato parte da una fetta sottoscritta: leggere lo
+  // stato con getState() durante il render darebbe numeri che non si
+  // aggiornano quando cambiano.
+  const progress = useAppStore((s) => s.progress);
+  const daRiprendere = useMemo(
+    () => continueLearning({ ...appStore.getState(), progress, songs }),
+    [progress, songs],
+  );
+  const minutiOggi = useMemo(
+    () => minutesPracticedToday({ ...appStore.getState(), recentSessions }),
+    [recentSessions],
+  );
 
   const livello = levelProgress(profile?.xp ?? 0);
   const obiettivo = profile?.dailyGoalMinutes ?? 10;
   const ultimoPunteggio = recentSessions[0]?.score ?? null;
 
-  const italiane = songs.filter((s) => s.tags.includes('italiana') || s.tags.includes('ballata'));
-  const principianti = songs.filter((s) => s.baseDifficulty === 'beginner');
-  const gratuite = songs.filter((s) => s.isFree);
+  // Gli esercizi del percorso hanno una sezione dedicata: nelle fasce
+  // del catalogo si mostra solo il repertorio.
+  const repertorio = songs.filter((s) => !s.tags.includes('lezione'));
+  const italiane = repertorio.filter((s) => s.tags.includes('italiana') || s.tags.includes('ballata'));
+  const principianti = repertorio.filter((s) => s.baseDifficulty === 'beginner');
+  const gratuite = repertorio.filter((s) => s.isFree);
 
   const apri = (id: string) => router.push(`/song/${id}`);
   const scheda = (song: (typeof songs)[number]) => (
-    <SongCard key={song.id} song={song} compact progress={progressForSong(stato, song.id)}
+    <SongCard key={song.id} song={song} compact
+      progress={progressForSong({ ...appStore.getState(), progress }, song.id)}
       onPress={() => apri(song.id)} />
   );
 
@@ -97,6 +110,10 @@ export default function Home() {
         </Card>
 
         {/* ---- Fasce di brani ---- */}
+        {/* Il percorso viene prima del catalogo: a chi non sa da dove
+            cominciare, un elenco di canzoni non risponde. */}
+        <LessonPath />
+
         <HomeRow title="Continua a imparare" subtitle="Riprendi da dove eri rimasto"
           empty="Non hai ancora brani in corso: scegline uno qui sotto.">
           {daRiprendere.map(scheda)}

@@ -3,7 +3,7 @@ import { ScrollView, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DIFFICULTY_LABEL_IT, DIFFICULTY_ORDER, type DifficultyKey } from '../../core/song/types';
-import { appStore, progressForSong, useAppStore } from '../../state/appStore';
+import { useAppStore } from '../../state/appStore';
 import { SongCard } from '../../features/catalog/SongCard';
 import { Card } from '../../ui/components/Card';
 import { Text } from '../../ui/components/Text';
@@ -14,13 +14,16 @@ export default function Catalog() {
   const router = useRouter();
   const songs = useAppStore((s) => s.songs);
   const artists = useAppStore((s) => s.artists);
+  const progress = useAppStore((s) => s.progress);
   const [query, setQuery] = useState('');
   const [difficolta, setDifficolta] = useState<DifficultyKey | null>(null);
   const [artista, setArtista] = useState<string | null>(null);
 
   const risultati = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return songs.filter((s) => {
+    // Gli esercizi del percorso stanno nella Home, non in catalogo:
+    // chi cerca "una canzone" non cerca "Le cinque dita".
+    return songs.filter((s) => !s.tags.includes('lezione')).filter((s) => {
       if (q && !`${s.title} ${s.artistName}`.toLowerCase().includes(q)) return false;
       if (difficolta && !s.arrangements.some((a) => a.difficulty === difficolta)) return false;
       if (artista && s.artistId !== artista) return false;
@@ -31,7 +34,6 @@ export default function Catalog() {
   // Artisti in attesa di licenza: si mostrano, ma e' chiaro che non
   // hanno brani. Nascondere la cosa genererebbe solo ricerche a vuoto.
   const inAttesa = artists.filter((a) => a.isPlaceholder);
-  const stato = appStore.getState();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
@@ -83,7 +85,8 @@ export default function Catalog() {
           </Text>
         ) : (
           risultati.map((song) => (
-            <SongCard key={song.id} song={song} progress={progressForSong(stato, song.id)}
+            <SongCard key={song.id} song={song}
+              progress={progress.find((p) => p.songId === song.id) ?? null}
               onPress={() => router.push(`/song/${song.id}`)} />
           ))
         )}

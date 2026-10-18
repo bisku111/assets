@@ -34,7 +34,7 @@ describe('trasporto', () => {
     // incrementale sbaglierebbe di decine di millisecondi.
     for (let i = 0; i < 36_000; i++) {
       clock.advance(16.6667);
-      transport.positionMs;
+      void transport.positionMs; // la lettura e' il punto: innesca il ricalcolo
     }
     expect(transport.positionMs).toBeCloseTo(600_001.2, 0);
   });

@@ -2,6 +2,7 @@ import { buildSong } from '../core/song/builder';
 import { selectValidSongs } from '../core/song/validate';
 import type { Artist, Song } from '../core/song/types';
 import { ARTISTS } from './artists';
+import { LESSON_SONGS } from './lessons';
 import { ORIGINAL_SONGS } from './songs/originals';
 import { PUBLIC_DOMAIN_SONGS } from './songs/publicDomain';
 
@@ -17,7 +18,7 @@ import { PUBLIC_DOMAIN_SONGS } from './songs/publicDomain';
  * Un test del core garantisce che, in questo repository, non ce ne siano.
  */
 
-const BUILT_SONGS: Song[] = [...ORIGINAL_SONGS, ...PUBLIC_DOMAIN_SONGS].map(buildSong);
+const BUILT_SONGS: Song[] = [...LESSON_SONGS, ...ORIGINAL_SONGS, ...PUBLIC_DOMAIN_SONGS].map(buildSong);
 
 const validation = selectValidSongs(BUILT_SONGS);
 
@@ -42,3 +43,9 @@ export function demoSongBySlug(slug: string): Song | null {
 export function demoSongById(id: string): Song | null {
   return DEMO_SONGS.find((s) => s.id === id) ?? null;
 }
+
+/** Gli id delle lezioni, nell'ordine del percorso didattico. */
+export const LESSON_SONG_IDS: string[] = LESSON_SONGS.map((l) => l.id);
+
+/** Brani veri e propri: il catalogo senza gli esercizi del percorso. */
+export const DEMO_REPERTOIRE: Song[] = DEMO_SONGS.filter((s) => !s.tags.includes('lezione'));

@@ -9,7 +9,7 @@ import {
   DIFFICULTY_LABEL_IT, SECTION_LABEL_IT, type DifficultyKey,
 } from '../../core/song/types';
 import { suggestedRateFor } from '../../core/learning/progression';
-import { appStore, progressForSong, useAppStore } from '../../state/appStore';
+import { useAppStore } from '../../state/appStore';
 import { PremiumBadge } from '../../features/catalog/SongCard';
 import { Button } from '../../ui/components/Button';
 import { Card } from '../../ui/components/Card';
@@ -31,7 +31,8 @@ export default function SongDetail() {
   const songs = useAppStore((s) => s.songs);
   const song = songs.find((s) => s.id === id || s.slug === id);
 
-  const progresso = song ? progressForSong(appStore.getState(), song.id) : null;
+  const progressi = useAppStore((s) => s.progress);
+  const progresso = song ? (progressi.find((p) => p.songId === song.id) ?? null) : null;
 
   const difficolta = useMemo(() => (song ? availableDifficulties(song) : []), [song]);
   const [livello, setLivello] = useState<DifficultyKey | null>(null);
