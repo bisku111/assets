@@ -87,6 +87,15 @@ export default function Profile() {
               <Text variant="caption" tone="muted" style={{ marginTop: 2 }}>{s.nota}</Text>
             </Card>
           ))}
+          <Card onPress={() => router.push('/midi-setup')} accessibilityLabel="Collega il pianoforte"
+            style={{ marginTop: spacing.sm, borderColor: colors.primary }}>
+            <Text variant="heading">Collega il pianoforte</Text>
+            <Text variant="caption" tone="muted" style={{ marginTop: 2, lineHeight: 19 }}>
+              Verifica che l app veda il tuo strumento e prova qualche nota prima
+              di iniziare una lezione.
+            </Text>
+          </Card>
+
           <Card onPress={() => router.push('/calibrate')} accessibilityLabel="Calibra il ritardo"
             style={{ marginTop: spacing.sm, borderColor: colors.accent }}>
             <Text variant="heading">Calibra il ritardo</Text>

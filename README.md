@@ -47,11 +47,19 @@ alcun modulo nativo.
 | Chrome, Edge | ✅ | ✅ |
 | Safari | ❌ non supporta la Web MIDI API | ✅ |
 
-Collega lo strumento via USB (i pianoforti digitali sono quasi sempre
-*class-compliant*: nessun driver da installare) oppure via Bluetooth MIDI. Poi
-scegli *Profilo → Come suoni → Tastiera MIDI*. Con il Bluetooth il ritardo
-arriva a un decimo di secondo: usa *Profilo → Calibra il ritardo* prima di
-studiare, altrimenti verrai giudicato in ritardo pur suonando a tempo.
+Collega lo strumento alla presa **USB di tipo B** (quella quadrata, marcata
+*USB TO HOST*) con un cavo verso il computer, oppure via Bluetooth MIDI. I
+pianoforti digitali sono quasi sempre *class-compliant*: nessun driver da
+installare.
+
+Poi, in *Profilo*:
+
+1. **Collega il pianoforte** — verifica che l'app veda lo strumento, ne mostra
+   il nome e conta le note che arrivano mentre suoni. Se non lo vede, dice cosa
+   controllare invece di restare muta.
+2. **Calibra il ritardo** — consigliato con il Bluetooth, dove il ritardo arriva
+   a un decimo di secondo; via USB di solito risponderà "il tuo strumento
+   risponde subito".
 
 ---
 
@@ -199,6 +207,7 @@ Elenco onesto. Niente è simulato con dati finti.
 | Pagamenti | ⛔ non implementati. Schema e gating pronti, manca l'SDK di billing |
 | Accompagnamento audio ("suona con la base") | ⛔ non implementato: servono registrazioni, che il repository non contiene. Le quattro modalità di studio ci sono |
 | Calibrazione guidata della latenza | ✅ metronomo + otto battiti; click udibile su web, impulso tattile su mobile |
+| Verifica del collegamento MIDI (nome strumento, note ricevute, diagnostica) | ✅ |
 
 ---
 

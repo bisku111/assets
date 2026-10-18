@@ -55,24 +55,34 @@ export interface NoteInputPort {
   start(): Promise<InputStatus>;
   stop(): void;
   subscribe(listener: (event: PlayedNoteEvent) => void): Unsubscribe;
+  /**
+   * Nomi dei dispositivi rilevati, dove il concetto ha senso.
+   * Serve a una cosa concreta: far vedere a chi collega il pianoforte
+   * che l'app lo ha riconosciuto, invece di lasciarlo indovinare.
+   */
+  devices?(): string[];
 }
 
 /** Messaggio leggibile per l'utente. Mai mostrare la causa tecnica cruda. */
 export function inputStatusMessageIt(status: InputStatus, source: InputSourceId): string {
   const nome =
     source === 'midi' ? 'La tastiera MIDI' : source === 'microphone' ? 'Il microfono' : 'La tastiera';
+  // Forma minuscola scritta a mano: toLowerCase() trasformerebbe
+  // l'acronimo MIDI in "midi".
+  const nomeMinuscolo =
+    source === 'midi' ? 'la tastiera MIDI' : source === 'microphone' ? 'il microfono' : 'la tastiera';
 
   switch (status.state) {
     case 'idle':
       return `${nome} non e' ancora attiva.`;
     case 'starting':
-      return `Sto collegando ${nome.toLowerCase()}...`;
+      return `Sto collegando ${nomeMinuscolo}...`;
     case 'ready':
       return status.deviceName ? `Collegato: ${status.deviceName}` : `${nome} e' pronta.`;
     case 'denied':
       return source === 'microphone'
         ? 'Per ascoltarti serve il permesso di usare il microfono. Puoi darlo dalle impostazioni, oppure suonare sulla tastiera a schermo.'
-        : `Permesso negato per ${nome.toLowerCase()}. Puoi suonare sulla tastiera a schermo.`;
+        : `Permesso negato per ${nomeMinuscolo}. Puoi suonare sulla tastiera a schermo.`;
     case 'unavailable':
       switch (status.reason) {
         case 'native-module-missing':
@@ -85,6 +95,6 @@ export function inputStatusMessageIt(status: InputStatus, source: InputSourceId)
           return `${nome} non e' supportata su questo dispositivo. Puoi suonare sulla tastiera a schermo.`;
       }
     case 'error':
-      return `Qualcosa non ha funzionato con ${nome.toLowerCase()}. Puoi continuare con la tastiera a schermo.`;
+      return `Qualcosa non ha funzionato con ${nomeMinuscolo}. Puoi continuare con la tastiera a schermo.`;
   }
 }

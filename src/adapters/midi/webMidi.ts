@@ -99,7 +99,7 @@ export class WebMidiInput implements NoteInputPort {
     return () => this.listeners.delete(listener);
   }
 
-  deviceNames(): string[] {
+  devices(): string[] {
     return this.attached.map((d) => d.name ?? 'Dispositivo MIDI');
   }
 

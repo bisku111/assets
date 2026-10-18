@@ -47,7 +47,12 @@ await new Promise((resolve) => server.listen(PORT, resolve));
 const browser = await chromium.launch(
   process.env.PLAYWRIGHT_CHROMIUM ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM } : {},
 );
-const page = await browser.newPage({ viewport: { width: 420, height: 900 } });
+const context = await browser.newContext({ viewport: { width: 420, height: 900 } });
+// Si concede il permesso MIDI: cosi' si prova il caso reale "permesso
+// dato ma nessuno strumento collegato", invece di restare appesi alla
+// richiesta del browser.
+await context.grantPermissions(['midi']).catch(() => undefined);
+const page = await context.newPage();
 
 const erroriJs = [];
 page.on('pageerror', (e) => erroriJs.push(`pageerror: ${e.message}`));
@@ -79,6 +84,9 @@ async function toccaVisibile(etichetta, { hold = 90 } = {}) {
   const quanti = await tutti.count();
   for (let i = 0; i < quanti; i++) {
     const elemento = tutti.nth(i);
+    // Si porta l'elemento nel campo visibile: si tocca per coordinate,
+    // quindi quello che sta sotto la piega non sarebbe raggiungibile.
+    await elemento.scrollIntoViewIfNeeded({ timeout: 2000 }).catch(() => undefined);
     const box = await elemento.boundingBox();
     if (!box) continue;
     const handle = await elemento.elementHandle();
@@ -193,9 +201,16 @@ try {
   await page.getByRole('button', { name: 'Avvia' }).first().click({ delay: 60 });
   const intervallo = 60_000 / 80;
   const hold = 50;
+  const tasto = await page.getByLabel('DO4').first().boundingBox();
+  if (!tasto) throw new Error('tastiera di calibrazione non trovata');
+  const centro = { x: tasto.x + tasto.width / 2, y: tasto.y + tasto.height / 2 };
+
   await page.waitForTimeout(intervallo * 4);
   for (let i = 0; i < 8; i++) {
-    await toccaVisibile('DO4', { hold });
+    await page.mouse.move(centro.x, centro.y);
+    await page.mouse.down();
+    await page.waitForTimeout(hold);
+    await page.mouse.up();
     await page.waitForTimeout(intervallo - hold);
   }
   await page.waitForTimeout(1300);
@@ -209,6 +224,22 @@ try {
   const nonAbbastanza = await page.getByText(/abbastanza note/).first().isVisible().catch(() => false);
   passo('la calibrazione produce una misura valida', !nonAbbastanza);
   passo('la misura si puo salvare', await visibile(page.getByRole('button', { name: 'Salva' })));
+
+  // ---- 11. Verifica del collegamento MIDI --------------------------------
+  // Qui non c'e' nessuno strumento collegato: ci si aspetta che l'app lo
+  // dica chiaramente e spieghi cosa controllare, invece di restare muta.
+  await page.getByRole('button', { name: 'Annulla' }).first().click({ delay: 60 });
+  await page.waitForTimeout(1000);
+  await toccaVisibile('Collega il pianoforte');
+  await page.waitForTimeout(1500);
+  passo('la verifica del collegamento si apre', await visibile(page.getByText('Prova: suona qualche nota')));
+  passo('senza strumento lo dice invece di restare muta', await visibile(page.getByText('Non collegato')));
+  passo('spiega cosa controllare', await visibile(page.getByText(/USB TO HOST/)));
+  passo('non propone di usare un ingresso che non funziona',
+    !(await visibile(page.getByRole('button', { name: /Usa il pianoforte/ }))));
+  // L'aiuto dice "poi tocca Riprova": il pulsante deve esistere.
+  passo('offre di riprovare dopo aver collegato il cavo',
+    await visibile(page.getByRole('button', { name: 'Riprova' })));
 } catch (error) {
   passo('esecuzione senza eccezioni', false, String(error).split('\n')[0]);
 }

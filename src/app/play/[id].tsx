@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useKeepAwake } from 'expo-keep-awake';
 import type { CoachAction } from '../../core/coach/coach';
 import type { PracticeMode } from '../../core/engine/matcher';
 import type { SessionResult } from '../../core/engine/session';
@@ -11,6 +10,7 @@ import { inputStatusMessageIt, type InputSourceId } from '../../core/ports/noteI
 import { formatDuration, midiRange, resolveArrangement } from '../../core/song/query';
 import type { DifficultyKey, Hand, Song, SongArrangement } from '../../core/song/types';
 import { ResultSheet } from '../../features/player/ResultSheet';
+import { useKeepScreenAwake } from '../../features/player/useKeepScreenAwake';
 import { usePracticeSession } from '../../features/player/usePracticeSession';
 import { recordPractice, useAppStore } from '../../state/appStore';
 import { NoteHighway } from '../../ui/NoteHighway';
@@ -130,7 +130,7 @@ function PlayStage({
   song, arrangement, mode, ratePct, sectionId, hands, loop, attempts,
   onAttempt, onSetRate, onSetSection, onSetHands, onToggleLoop, onExit,
 }: PlayStageProps) {
-  useKeepAwake(); // durante una lezione lo schermo non deve spegnersi
+  useKeepScreenAwake(); // durante una lezione lo schermo non deve spegnersi
 
   const { height } = useWindowDimensions();
   const profile = useAppStore((s) => s.profile);
