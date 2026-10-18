@@ -1,9 +1,8 @@
 import { memo, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { ExpectedNoteState } from '../core/engine/matcher';
-import { isBlackKey, whiteKeyIndex } from '../core/music/note';
+import { keyboardGeometry } from '../core/music/keyboard';
 import { colors, handColor, radius } from './theme';
-import { layout } from './PianoKeyboard';
 
 /**
  * Le note che scendono verso la tastiera.
@@ -30,8 +29,7 @@ export interface NoteHighwayProps {
 export const NoteHighway = memo(function NoteHighway({
   notes, positionMs, lookAheadMs, fromMidi, toMidi, height,
 }: NoteHighwayProps) {
-  const { whites, start } = useMemo(() => layout(fromMidi, toMidi), [fromMidi, toMidi]);
-  const whiteWidthPct = 100 / Math.max(1, whites.length);
+  const geometry = useMemo(() => keyboardGeometry(fromMidi, toMidi), [fromMidi, toMidi]);
 
   return (
     <View style={[styles.highway, { height }]} pointerEvents="none">
@@ -48,12 +46,10 @@ export const NoteHighway = memo(function NoteHighway({
         const topPct = 1 - delta / lookAheadMs;        // 1 = sulla linea
         const durationPct = note.durationMs / lookAheadMs;
 
-        const nero = isBlackKey(note.midi);
-        const whiteIndex = whiteKeyIndex(nero ? note.midi - 1 : note.midi) - whiteKeyIndex(start);
-        const leftPct = nero
-          ? (whiteIndex + 1) * whiteWidthPct - whiteWidthPct * 0.32
-          : whiteIndex * whiteWidthPct;
-        const widthPct = nero ? whiteWidthPct * 0.64 : whiteWidthPct;
+        // Stessa geometria della tastiera sottostante: la nota deve
+        // cadere sul tasto da premere, non accanto.
+        const box = geometry.box(note.midi);
+        if (!box) return null;
 
         const colore =
           state.status === 'hit' ? colors.success
@@ -66,8 +62,8 @@ export const NoteHighway = memo(function NoteHighway({
             style={[
               styles.note,
               {
-                left: `${leftPct}%`,
-                width: `${widthPct}%`,
+                left: `${box.left * 100}%`,
+                width: `${box.width * 100}%`,
                 // L'altezza rappresenta la durata: una nota lunga si vede
                 // lunga, ed è così che si impara a tenerla.
                 height: Math.max(10, durationPct * height),

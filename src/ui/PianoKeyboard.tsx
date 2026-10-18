@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { isBlackKey, noteNameIt, whiteKeyIndex } from '../core/music/note';
+import { keyboardGeometry } from '../core/music/keyboard';
+import { noteNameIt } from '../core/music/note';
 import type { Hand } from '../core/song/types';
 import { colors, handColor, radius } from './theme';
 import { Text } from './components/Text';
@@ -39,48 +40,34 @@ export function PianoKeyboard({
   fromMidi, toMidi, pressed = [], expected, wrong = [],
   onPressKey, onReleaseKey, showNoteNames = false, height = 160,
 }: PianoKeyboardProps) {
-  const { whites, blacks } = useMemo(() => layout(fromMidi, toMidi), [fromMidi, toMidi]);
+  const geometry = useMemo(() => keyboardGeometry(fromMidi, toMidi), [fromMidi, toMidi]);
 
   const pressedSet = useMemo(() => new Set(pressed), [pressed]);
   const wrongSet = useMemo(() => new Set(wrong), [wrong]);
-  const whiteWidthPct = 100 / Math.max(1, whites.length);
+
+  // I bianchi prima, i neri dopo: su Android l'ordine di dichiarazione
+  // vince sull'elevazione, e senza questo i neri non sarebbero premibili.
+  const ordinati = useMemo(
+    () => [...geometry.keys].sort((a, b) => Number(a.black) - Number(b.black)),
+    [geometry],
+  );
 
   return (
     <View style={[styles.keyboard, { height }]}>
-      {/* Tasti bianchi */}
-      {whites.map((midi, index) => (
+      {ordinati.map((box) => (
         <Key
-          key={midi}
-          midi={midi}
-          black={false}
+          key={box.midi}
+          midi={box.midi}
+          black={box.black}
           style={{
-            left: `${index * whiteWidthPct}%`,
-            width: `${whiteWidthPct}%`,
-            height: '100%',
+            left: `${box.left * 100}%`,
+            width: `${box.width * 100}%`,
+            height: box.black ? '62%' : '100%',
           }}
-          pressed={pressedSet.has(midi)}
-          expectedHand={expected?.get(midi)}
-          wrong={wrongSet.has(midi)}
-          label={showNoteNames ? noteNameIt(midi, false) : undefined}
-          onPressKey={onPressKey}
-          onReleaseKey={onReleaseKey}
-        />
-      ))}
-
-      {/* Tasti neri: sopra i bianchi, a cavallo fra due di essi. */}
-      {blacks.map(({ midi, afterWhiteIndex }) => (
-        <Key
-          key={midi}
-          midi={midi}
-          black
-          style={{
-            left: `${(afterWhiteIndex + 1) * whiteWidthPct - whiteWidthPct * 0.32}%`,
-            width: `${whiteWidthPct * 0.64}%`,
-            height: '62%',
-          }}
-          pressed={pressedSet.has(midi)}
-          expectedHand={expected?.get(midi)}
-          wrong={wrongSet.has(midi)}
+          pressed={pressedSet.has(box.midi)}
+          expectedHand={expected?.get(box.midi)}
+          wrong={wrongSet.has(box.midi)}
+          label={showNoteNames && !box.black ? noteNameIt(box.midi, false) : undefined}
           onPressKey={onPressKey}
           onReleaseKey={onReleaseKey}
         />
@@ -140,30 +127,6 @@ function Key({
       ) : null}
     </Pressable>
   );
-}
-
-/** Calcola quali tasti disegnare e dove mettere i neri. */
-export function layout(fromMidi: number, toMidi: number) {
-  // Si parte sempre da un tasto bianco: iniziare da un nero lascerebbe
-  // un tasto sospeso nel vuoto, senza il bianco su cui appoggiarsi.
-  let start = fromMidi;
-  while (start > 0 && isBlackKey(start)) start -= 1;
-  let end = toMidi;
-  while (end < 127 && isBlackKey(end)) end += 1;
-
-  const whites: number[] = [];
-  const blacks: Array<{ midi: number; afterWhiteIndex: number }> = [];
-
-  for (let midi = start; midi <= end; midi++) {
-    if (isBlackKey(midi)) {
-      // L'indice del bianco immediatamente precedente.
-      blacks.push({ midi, afterWhiteIndex: whiteKeyIndex(midi - 1) - whiteKeyIndex(start) });
-    } else {
-      whites.push(midi);
-    }
-  }
-
-  return { whites, blacks, start, end };
 }
 
 const styles = StyleSheet.create({

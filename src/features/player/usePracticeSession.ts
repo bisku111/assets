@@ -31,11 +31,16 @@ export interface UsePracticeSessionOptions {
   preferredInput: InputSourceId;
   /** Quanti ms di brano sono visibili nella corsia delle note. */
   lookAheadMs: number;
+  /** Finestra del pentagramma: guarda avanti e anche indietro. */
+  staffAheadMs: number;
+  staffBehindMs: number;
 }
 
 export interface PracticeView {
   frame: SessionFrame;
   visibleNotes: readonly ExpectedNoteState[];
+  /** Note dentro la finestra del pentagramma, più ampia all'indietro. */
+  staffNotes: readonly ExpectedNoteState[];
   /** Note che il brano sta chiedendo adesso, con la mano. */
   expectedNow: ReadonlyMap<number, Hand>;
   pressed: readonly number[];
@@ -49,7 +54,7 @@ export interface PracticeView {
 }
 
 const FRAME_VUOTO: SessionFrame = {
-  positionMs: 0, progress: 0, state: 'idle', waitingFor: null, currentSection: null,
+  positionMs: 0, progress: 0, state: 'idle', waitingFor: null, waitingForIndex: null, currentSection: null,
   lastOutcome: null, notesJustMissed: [],
   live: { expected: 0, correct: 0, wrong: 0, missed: 0, extra: 0, streak: 0 },
 };
@@ -57,7 +62,7 @@ const FRAME_VUOTO: SessionFrame = {
 export function usePracticeSession(options: UsePracticeSessionOptions) {
   const {
     arrangement, mode, ratePct, sectionId, hands, loopSection,
-    inputLatencyMs, preferredInput, lookAheadMs,
+    inputLatencyMs, preferredInput, lookAheadMs, staffAheadMs, staffBehindMs,
   } = options;
 
   // La sessione viene ricreata quando cambia qualcosa di strutturale:
@@ -160,6 +165,7 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
   // Memorizzarlo richiederebbe di dichiarare una dipendenza che il
   // calcolo non usa davvero, cioe' mentire al lettore.
   const visibleNotes = session.visibleNotes(lookAheadMs);
+  const staffNotes = session.visibleNotes(staffAheadMs, staffBehindMs);
 
   const expectedNow = useMemo(() => {
     const mappa = new Map<number, Hand>();
@@ -187,7 +193,8 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
   const finish = useCallback((): SessionResult => session.finish(), [session]);
 
   const view: PracticeView = {
-    frame, visibleNotes, expectedNow, pressed, wrong, feedback, feedbackKind, inputStatus, activeInput,
+    frame, visibleNotes, staffNotes, expectedNow, pressed, wrong,
+    feedback, feedbackKind, inputStatus, activeInput,
   };
 
   return { session, view, start, pause, resume, restart, finish, pressKey, releaseKey };

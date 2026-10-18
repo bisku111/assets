@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,15 +6,21 @@ import type { CoachAction } from '../../core/coach/coach';
 import type { PracticeMode } from '../../core/engine/matcher';
 import type { SessionResult } from '../../core/engine/session';
 import { nextRate, previousRate } from '../../core/learning/progression';
+import { keyboardGeometry } from '../../core/music/keyboard';
+import { handPose, nextFingerTargets } from '../../core/notation/handPose';
+import type { Clef } from '../../core/notation/staff';
+import { buildStaffScore, clefForHand } from '../../core/notation/staff';
 import { inputStatusMessageIt, type InputSourceId } from '../../core/ports/noteInput';
 import { formatDuration, midiRange, resolveArrangement } from '../../core/song/query';
-import type { DifficultyKey, Hand, Song, SongArrangement } from '../../core/song/types';
+import type { DifficultyKey, Hand, Song, SongArrangement, SongNote } from '../../core/song/types';
 import { ResultSheet } from '../../features/player/ResultSheet';
 import { useKeepScreenAwake } from '../../features/player/useKeepScreenAwake';
 import { usePracticeSession } from '../../features/player/usePracticeSession';
 import { recordPractice, useAppStore } from '../../state/appStore';
+import { HandOverlay } from '../../ui/HandOverlay';
 import { NoteHighway } from '../../ui/NoteHighway';
 import { PianoKeyboard } from '../../ui/PianoKeyboard';
+import { StaffView, staffHeight } from '../../ui/StaffView';
 import { Button } from '../../ui/components/Button';
 import { ProgressBar } from '../../ui/components/ProgressBar';
 import { Text } from '../../ui/components/Text';
@@ -23,10 +29,14 @@ import { colors, handColor, radius, spacing } from '../../ui/theme';
 /**
  * Tutorial interattivo.
  *
- * Tre fasce verticali: comandi in alto (piccoli), note in arrivo al
- * centro (tutto lo spazio restante), tastiera in basso, dove stanno le
- * mani. L'ordine non è estetico: si guarda al centro e si suona in
- * basso, quindi i comandi non devono mai stare fra i due.
+ * Quattro fasce verticali, nell'ordine in cui l'occhio le usa:
+ * comandi in alto (piccoli), spartito, note in arrivo al centro (tutto
+ * lo spazio restante), tastiera in basso con le mani sopra. Si legge
+ * in alto, si segue al centro, si suona in basso: i comandi non devono
+ * mai finire in mezzo a questo percorso.
+ *
+ * Tutte e tre le rappresentazioni mostrano lo stesso istante: quando il
+ * motore si ferma ad aspettare una nota, si fermano insieme.
  */
 export default function Play() {
   const router = useRouter();
@@ -87,6 +97,8 @@ function PlaySession({ song, arrangement, mode, initialRatePct, initialSectionId
   const [hands, setHands] = useState<Hand[] | null>(null);
   const [loop, setLoop] = useState(false);
   const [tentativi, setTentativi] = useState(0);
+  const [spartito, setSpartito] = useState(true);
+  const [mani, setMani] = useState(true);
 
   const maniAttive = hands ?? arrangement.hands;
 
@@ -102,6 +114,10 @@ function PlaySession({ song, arrangement, mode, initialRatePct, initialSectionId
       sectionId={sectionId}
       hands={maniAttive}
       loop={loop}
+      showStaff={spartito}
+      showHands={mani}
+      onToggleStaff={() => setSpartito((v) => !v)}
+      onToggleHands={() => setMani((v) => !v)}
       attempts={tentativi}
       onAttempt={() => setTentativi((n) => n + 1)}
       onSetRate={setRatePct}
@@ -118,6 +134,10 @@ interface PlayStageProps extends Omit<PlaySessionProps, 'initialRatePct' | 'init
   sectionId: string | null;
   hands: Hand[];
   loop: boolean;
+  showStaff: boolean;
+  showHands: boolean;
+  onToggleStaff: () => void;
+  onToggleHands: () => void;
   attempts: number;
   onAttempt: () => void;
   onSetRate: (rate: number) => void;
@@ -128,18 +148,32 @@ interface PlayStageProps extends Omit<PlaySessionProps, 'initialRatePct' | 'init
 
 function PlayStage({
   song, arrangement, mode, ratePct, sectionId, hands, loop, attempts,
+  showStaff, showHands, onToggleStaff, onToggleHands,
   onAttempt, onSetRate, onSetSection, onSetHands, onToggleLoop, onExit,
 }: PlayStageProps) {
   useKeepScreenAwake(); // durante una lezione lo schermo non deve spegnersi
 
+  const poseRef = useRef<Record<Hand, ReturnType<typeof handPose>>>({ left: null, right: null });
+
   const { height } = useWindowDimensions();
   const profile = useAppStore((s) => s.profile);
   const preferredInput: InputSourceId = profile?.preferredInput ?? 'virtual-keyboard';
-  const lookAheadMs = 3000;
+
+  // Il pentagramma si misura in battute, non in secondi: otto movimenti
+  // a schermo restano otto movimenti anche al 50% di velocità, così la
+  // lettura non cambia aspetto mentre si accelera.
+  const msPerBeat = 60_000 / song.bpm;
+  const msPerBar = msPerBeat * song.timeSignature[0] * (4 / song.timeSignature[1]);
+  const staffWindowMs = msPerBeat * 8;
+  const staffBehindMs = staffWindowMs * 0.32;
+  // Anche la corsia si misura in movimenti: a secondi fissi, una minima
+  // a 50 BPM riempirebbe tutto lo schermo e non si capirebbe più nulla.
+  const lookAheadMs = Math.min(6000, Math.max(2200, msPerBeat * 4));
 
   const { view, start, pause, resume, restart, finish, pressKey, releaseKey } = usePracticeSession({
     arrangement, mode, ratePct, sectionId, hands, loopSection: loop,
     inputLatencyMs: profile?.inputLatencyMs ?? 0, preferredInput, lookAheadMs,
+    staffAheadMs: staffWindowMs, staffBehindMs,
   });
 
   const [risultato, setRisultato] = useState<SessionResult | null>(null);
@@ -150,6 +184,8 @@ function PlayStage({
    * tastiera non starebbe dove stanno le mani.
    */
   const [altezzaCorsia, setAltezzaCorsia] = useState(0);
+  const [larghezzaSpartito, setLarghezzaSpartito] = useState(0);
+  const [larghezzaTastiera, setLarghezzaTastiera] = useState(0);
 
   // Estensione mostrata: quella del brano, allargata di poco perché una
   // nota incollata al bordo è difficile da leggere.
@@ -157,6 +193,23 @@ function PlayStage({
     const range = midiRange(arrangement.notes) ?? { min: 60, max: 72 };
     return { from: Math.max(21, range.min - 2), to: Math.min(108, range.max + 2) };
   }, [arrangement]);
+
+  const geometria = useMemo(
+    () => keyboardGeometry(estensione.from, estensione.to),
+    [estensione],
+  );
+
+  const spartito = useMemo(
+    () => buildStaffScore(arrangement.notes, { keySignature: song.keySignature, msPerBeat }),
+    [arrangement, song.keySignature, msPerBeat],
+  );
+
+  // Si scrivono solo i righi che hanno qualcosa da dire: isolando una
+  // mano, l'altro rigo sparisce invece di restare vuoto.
+  const righi = useMemo<Clef[]>(
+    () => (['right', 'left'] as Hand[]).filter((h) => hands.includes(h)).map(clefForHand),
+    [hands],
+  );
 
   useEffect(() => { start(); }, [start]);
 
@@ -206,9 +259,33 @@ function PlayStage({
   }
 
   const inPausa = view.frame.state === 'paused' && !view.frame.waitingFor;
+
+  // Stato per testa di nota. Si ricostruisce a ogni frame: sono poche
+  // decine di note, e memorizzarlo richiederebbe di dichiarare una
+  // dipendenza che cambia comunque a ogni frame.
+  const statiNote = new Map<number, 'hit' | 'missed'>();
+  for (const stato of view.staffNotes) {
+    if (stato.status !== 'pending') statiNote.set(stato.index, stato.status);
+  }
+
+  const daSuonare: SongNote[] = [];
+  for (const stato of view.visibleNotes) if (stato.status === 'pending') daSuonare.push(stato.note);
+
+  // Le mani restano dove sono fra una nota e l'altra, come quelle vere:
+  // se non c'è nulla da preparare si tiene l'ultima posa buona.
+  const posa = (hand: Hand) => {
+    if (!showHands || !hands.includes(hand)) return null;
+    const nuova = handPose(
+      hand,
+      nextFingerTargets(daSuonare, hand, view.frame.positionMs, ANTICIPO_MANI_MS),
+      geometria,
+    );
+    if (nuova) poseRef.current[hand] = nuova;
+    return poseRef.current[hand];
+  };
   // La tastiera cresce con lo schermo ma entro limiti: troppo bassa non
   // si colpisce, troppo alta ruba spazio alle note in arrivo.
-  const altezzaTastiera = Math.min(220, Math.max(130, height * 0.22));
+  const altezzaTastiera = Math.min(260, Math.max(140, height * 0.3));
   const errori = view.frame.live.wrong + view.frame.live.missed;
 
   return (
@@ -244,7 +321,30 @@ function PlayStage({
           </>
         ) : null}
         {sectionId ? <Comando label="Loop" attivo={loop} onPress={onToggleLoop} /> : null}
+        <Comando label="Spartito" attivo={showStaff} onPress={onToggleStaff} />
+        <Comando label="Mani" attivo={showHands} onPress={onToggleHands} />
       </View>
+
+      {/* ---- Spartito: la stessa musica, scritta ---- */}
+      {showStaff ? (
+        <View
+          style={{ height: staffHeight(righi.length) }}
+          onLayout={(e) => setLarghezzaSpartito(e.nativeEvent.layout.width)}
+        >
+          {larghezzaSpartito > 0 ? (
+            <StaffView
+              score={spartito}
+              positionMs={view.frame.positionMs}
+              msPerBar={msPerBar}
+              width={larghezzaSpartito}
+              statuses={statiNote}
+              waitingIndex={view.frame.waitingForIndex}
+              windowMs={staffWindowMs}
+              clefs={righi}
+            />
+          ) : null}
+        </View>
+      ) : null}
 
       {/* ---- Note in arrivo: prendono tutto lo spazio che avanza ---- */}
       <View
@@ -286,19 +386,33 @@ function PlayStage({
         )}
       </View>
 
-      {/* ---- Tastiera ---- */}
-      <View style={{ paddingHorizontal: spacing.sm }}>
-        <PianoKeyboard
-          fromMidi={estensione.from}
-          toMidi={estensione.to}
-          pressed={view.pressed}
-          expected={view.expectedNow}
-          wrong={view.wrong}
-          showNoteNames={mode === 'learn'}
-          onPressKey={pressKey}
-          onReleaseKey={releaseKey}
-          height={altezzaTastiera}
-        />
+      {/* ---- Tastiera, con le mani sopra ---- */}
+      <View
+        style={{ paddingHorizontal: spacing.sm }}
+        onLayout={(e) => setLarghezzaTastiera(e.nativeEvent.layout.width - spacing.sm * 2)}
+      >
+        <View>
+          <PianoKeyboard
+            fromMidi={estensione.from}
+            toMidi={estensione.to}
+            pressed={view.pressed}
+            expected={view.expectedNow}
+            wrong={view.wrong}
+            showNoteNames={mode === 'learn'}
+            onPressKey={pressKey}
+            onReleaseKey={releaseKey}
+            height={altezzaTastiera}
+          />
+          {larghezzaTastiera > 0 ? (
+            <HandOverlay
+              left={posa('left')}
+              right={posa('right')}
+              width={larghezzaTastiera}
+              height={altezzaTastiera}
+              whiteKeyWidth={geometria.whiteWidth * larghezzaTastiera}
+            />
+          ) : null}
+        </View>
       </View>
 
       {/* ---- Stato della sorgente: dichiarato, mai nascosto ---- */}
@@ -317,6 +431,13 @@ function PlayStage({
     </SafeAreaView>
   );
 }
+
+/**
+ * Quanto prima le mani mostrano il prossimo attacco. Troppo presto e
+ * indicherebbero tasti che non servono ancora; troppo tardi e non si
+ * farebbe in tempo a spostare la mano.
+ */
+const ANTICIPO_MANI_MS = 1600;
 
 function Comando({
   label, onPress, attivo, colore,

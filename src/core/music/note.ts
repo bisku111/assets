@@ -12,7 +12,7 @@ export const A4_MIDI = 69;
 export const A4_FREQUENCY_HZ = 440;
 
 /** Nomi anglosassoni, indicizzati per pitch class (0 = C). */
-const NAMES_EN = ['C', 'C#', 'D', 'D#', 'È', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
+const NAMES_EN = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
 
 /** Nomi italiani: quello che l'utente legge a schermo. */
 const NAMES_IT = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'] as const;

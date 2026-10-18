@@ -201,9 +201,13 @@ Elenco onesto. Niente è simulato con dati finti.
 | Motore temporale, matching, punteggio, coach | ✅ implementati e testati |
 | Pitch detection (YIN) e parser MIDI | ✅ implementati e testati |
 | Tastiera a schermo come sorgente di input reale | ✅ |
+| Pentagramma scorrevole (chiavi, armatura, alterazioni, tagli addizionali, gambi, accordi) | ✅ calcolato nel core e verificato da test, non un'immagine |
+| Mani sui tasti con il dito che si illumina e il numero di diteggiatura | ✅ la diteggiatura è scritta nel contenuto, nota per nota |
+| Modalità IMPARA: spartito, note e tempo restano fermi finché non si suona la nota giusta | ✅ |
 | MIDI e microfono su **web** | ✅ reali (Web MIDI / Web Audio) |
 | MIDI e microfono su **iOS/Android** | ⛔ richiedono il modulo nativo `piano-io` (ARCHITECTURE.md §7.3). L'app lo dichiara all'utente e propone la tastiera a schermo |
 | Percorso didattico in 6 lezioni, a sblocco progressivo | ✅ |
+| Travature fra le crome sul pentagramma | ⛔ non implementate: le crome portano la codetta singola, che è scrittura corretta ma meno compatta |
 | Pagamenti | ⛔ non implementati. Schema e gating pronti, manca l'SDK di billing |
 | Accompagnamento audio ("suona con la base") | ⛔ non implementato: servono registrazioni, che il repository non contiene. Le quattro modalità di studio ci sono |
 | Calibrazione guidata della latenza | ✅ metronomo + otto battiti; click udibile su web, impulso tattile su mobile |

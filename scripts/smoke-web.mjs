@@ -159,6 +159,28 @@ try {
   await page.waitForTimeout(2000);
   passo('il tutorial mostra la tastiera', await visibile(page.getByLabel('DO4')));
   passo('la modalita IMPARA aspetta la prima nota', await visibile(page.getByText('Suona la nota indicata')));
+  passo('il tutorial mostra lo spartito', await visibile(page.getByLabel('Pentagramma')));
+  passo('il tutorial mostra le mani sui tasti', await visibile(page.getByLabel('Posizione delle mani')));
+
+  // Il numero del dito e il nome della nota sono l'informazione che le
+  // mani esistono per dare: senza, sarebbero una decorazione.
+  // allTextContents e non allInnerTexts: innerText esiste solo sugli
+  // elementi HTML, e questi sono <text> dentro un SVG.
+  const ditoScritto = await page.locator('svg text').allTextContents();
+  passo(
+    'le mani indicano quale dito e quale nota',
+    ditoScritto.some((t) => /^[1-5]$/.test(t.trim())) &&
+      ditoScritto.some((t) => /^(DO|RE|MI|FA|SOL|LA|SI)$/.test(t.trim())),
+    ditoScritto.filter((t) => t.trim()).slice(0, 4).join(' '),
+  );
+
+  // Finche' la nota non arriva, niente si muove: e' il senso della
+  // modalita' IMPARA, e vale per il tempo, per lo spartito e per la corsia.
+  const tempoPrima = await page.getByText(/^\d+:\d\d$/).first().innerText();
+  await page.waitForTimeout(1200);
+  const tempoDopo = await page.getByText(/^\d+:\d\d$/).first().innerText();
+  passo('il brano resta fermo finche la nota giusta non arriva', tempoPrima === tempoDopo,
+    `${tempoPrima} -> ${tempoDopo}`);
 
   // ---- 7. Nota sbagliata ---------------------------------------------------
   // Si sbaglia MENTRE il brano aspetta la prima nota: e' li' che una nota
@@ -174,6 +196,24 @@ try {
   await page.waitForTimeout(700);
   passo('dopo l errore si puo correggere e la nota e accettata', await visibile(page.getByText('Giusto')));
   passo('il contatore delle note giuste sale', await visibile(page.getByText(/1 giuste/)));
+
+  // Suonata la nota giusta, il brano riparte: lo stesso orologio che
+  // prima non si muoveva adesso avanza.
+  const tempoRipreso = await page.getByText(/^\d+:\d\d$/).first().innerText();
+  await page.waitForTimeout(1300);
+  const tempoAvanzato = await page.getByText(/^\d+:\d\d$/).first().innerText();
+  passo('dopo la nota giusta il brano riparte', tempoRipreso !== tempoAvanzato,
+    `${tempoRipreso} -> ${tempoAvanzato}`);
+
+  // ---- 8b. Spartito e mani si possono togliere ------------------------------
+  await toccaVisibile('Spartito');
+  await page.waitForTimeout(400);
+  passo('lo spartito si puo nascondere',
+    !(await page.getByLabel('Pentagramma').first().isVisible().catch(() => false)));
+  await toccaVisibile('Mani');
+  await page.waitForTimeout(400);
+  passo('le mani si possono nascondere',
+    !(await page.getByLabel('Posizione delle mani').first().isVisible().catch(() => false)));
 
   // ---- 9. Risultato e maestro -----------------------------------------------
   await page.getByRole('button', { name: 'Esci' }).first().click({ delay: 60 });

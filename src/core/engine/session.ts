@@ -46,6 +46,12 @@ export interface SessionFrame {
   state: 'idle' | 'playing' | 'paused' | 'ended';
   /** Nota che il brano sta aspettando (solo in modalità IMPARA). */
   waitingFor: SongNote | null;
+  /**
+   * Indice della nota attesa nell'arrangiamento. Serve a chi disegna:
+   * il pentagramma deve evidenziare quella testa e non un'altra nota
+   * con la stessa altezza, che nel brano compare decine di volte.
+   */
+  waitingForIndex: number | null;
   currentSection: SongSection | null;
   /** Ultimo esito, per il feedback immediato a schermo. */
   lastOutcome: MatchOutcome | null;
@@ -216,6 +222,7 @@ export class PracticeSession {
       progress: this.transport.progress,
       state: this.transport.state,
       waitingFor: this.waitingForState?.note ?? null,
+      waitingForIndex: this.waitingForState?.index ?? null,
       currentSection: this.section ?? this.sectionAtPosition(position),
       lastOutcome: this.lastOutcomeState,
       notesJustMissed,
@@ -264,11 +271,18 @@ export class PracticeSession {
   }
 
   /** Note da disegnare: quelle in arrivo nella finestra visibile. */
-  visibleNotes(lookAheadMs: number): ExpectedNoteState[] {
+  /**
+   * Le note dentro la finestra visibile.
+   *
+   * Il pentagramma guarda indietro più della corsia: le note appena
+   * suonate restano scritte a sinistra della linea di esecuzione, ed è
+   * da lì che si capisce cosa è andato storto.
+   */
+  visibleNotes(lookAheadMs: number, lookBehindMs = 400): ExpectedNoteState[] {
     const position = this.transport.positionMs;
     return this.matcher.notes.filter(
       (s) =>
-        s.note.startMs + s.note.durationMs >= position - 400 &&
+        s.note.startMs + s.note.durationMs >= position - lookBehindMs &&
         s.note.startMs <= position + lookAheadMs,
     );
   }

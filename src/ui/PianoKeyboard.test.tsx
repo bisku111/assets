@@ -1,31 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react-native';
-import { PianoKeyboard, layout } from './PianoKeyboard';
-
-describe('layout della tastiera', () => {
-  it('parte sempre da un tasto bianco, anche se si chiede di partire da un nero', () => {
-    // Un nero senza il bianco su cui appoggiarsi resterebbe sospeso.
-    expect(layout(61, 72).start).toBe(60);
-  });
-
-  it('un ottava contiene sette bianchi e cinque neri', () => {
-    const { whites, blacks } = layout(60, 71);
-    expect(whites).toHaveLength(7);
-    expect(blacks).toHaveLength(5);
-  });
-
-  it('mette ogni nero subito dopo il bianco giusto', () => {
-    const { blacks } = layout(60, 71);
-    // DO#=61 dopo il primo bianco (DO), RE#=63 dopo il secondo (RE),
-    // FA#=66 dopo il quarto (FA), e così via: è il layout vero.
-    expect(blacks.map((b) => [b.midi, b.afterWhiteIndex])).toEqual([
-      [61, 0], [63, 1], [66, 3], [68, 4], [70, 5],
-    ]);
-  });
-
-  it('estende la fine fino a comprendere il bianco successivo', () => {
-    expect(layout(60, 61).end).toBe(62);
-  });
-});
+import { PianoKeyboard } from './PianoKeyboard';
 
 describe('tastiera a schermo', () => {
   it('mostra un tasto per ogni nota dell estensione', () => {

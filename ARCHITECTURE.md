@@ -88,12 +88,13 @@ La tastiera virtuale non è un ripiego cosmetico: implementa la stessa
 │   │   ├── song/[id].tsx       # scheda brano
 │   │   └── play/[id].tsx       # tutorial interattivo (a schermo pieno)
 │   ├── core/                   # ⬛ TS PURO — niente React, niente RN
-│   │   ├── music/              # note, frequenze, nomi italiani (DO RE MI)
+│   │   ├── music/              # note, frequenze, nomi italiani, geometria tastiera
 │   │   ├── song/               # modello brano, notazione compatta, validazione
 │   │   ├── engine/             # Transport, NoteMatcher, PracticeSession
 │   │   ├── scoring/            # precisione, ritmo, tempo, punteggio 0–100
 │   │   ├── coach/              # decisioni didattiche + frasi in italiano
 │   │   ├── learning/           # progressione 50→100%, avanzamento a sezioni
+│   │   ├── notation/           # pentagramma, armature, diteggiatura, posa mani
 │   │   ├── midi/               # parser byte MIDI, gestione pedale
 │   │   ├── dsp/                # YIN, tracciamento note, calibrazione latenza
 │   │   ├── gamification/       # XP, livelli, striscia, medaglie
@@ -224,6 +225,50 @@ LA3:4~        nota tenuta (pedale)
 
 Scrivere migliaia di millisecondi a mano produce errori di sincronizzazione che
 poi si scaricano sull'utente durante la lezione.
+
+---
+
+## 6bis. Lettura: pentagramma, mani, corsia
+
+La stessa musica si mostra in tre modi contemporaneamente, e tutti e tre
+leggono lo stesso istante dal `Transport`: se il motore si ferma ad aspettare
+una nota, si fermano insieme. Non ci sono tre orologi.
+
+| Rappresentazione | A cosa serve | Dove sta |
+|---|---|---|
+| Pentagramma | imparare a leggere la musica scritta | `core/notation/staff.ts` + `ui/StaffView.tsx` |
+| Corsia delle note | capire *quando* suonare, senza saper leggere | `ui/NoteHighway.tsx` |
+| Mani sui tasti | capire *con quale dito* | `core/notation/handPose.ts` + `ui/HandOverlay.tsx` |
+
+**Il calcolo sta nel core, il disegno nella UI.** `staff.ts` non disegna
+niente: decide come si scrive una nota (DO# o REb, secondo l'armatura), su
+quale riga o spazio cade, se serve un'alterazione o un taglio addizionale, che
+valore ritmico ha, da che parte va il gambo e quali teste vanno spostate
+perché a distanza di seconda si toccherebbero. Sono tutte decisioni che si
+possono sbagliare in silenzio, e un test in Node le verifica una per una —
+compreso il DO centrale, che deve finire su un taglio addizionale sotto il
+violino e sopra il basso.
+
+**Una sola geometria per tastiera, corsia e mani.** `core/music/keyboard.ts`
+dice dove cade ogni tasto, in frazioni di larghezza. La usano i tre
+componenti: se ognuno ricalcolasse le posizioni, un dito finirebbe accanto al
+tasto che indica, e un aiuto visivo disallineato è peggio di nessun aiuto.
+
+**Le dita sono dati, non disegno.** Ogni nota del catalogo porta la sua
+diteggiatura scritta nel contenuto (`DO4:1@3` = DO4, un movimento, dito
+medio). `handPose()` aggancia il polpastrello del dito richiesto al centro
+esatto del suo tasto e dispone le altre dita intorno con la spaziatura
+naturale della mano. Quando una nota non ha diteggiatura, il dito non si
+accende: non se ne inventa una.
+
+**Le finestre si misurano in movimenti, non in secondi.** Otto movimenti di
+pentagramma e quattro di corsia restano tali anche al 50% di velocità: la
+pagina non cambia aspetto mentre si accelera. A secondi fissi, una minima a 50
+BPM riempirebbe tutto lo schermo.
+
+**Si disegna solo quello che serve.** Un brano per sola mano destra non ha un
+rigo di basso vuoto, e isolando una mano l'altro rigo sparisce: su un portatile
+quei cinquanta pixel sono quelli che mancano alla tastiera.
 
 ---
 
