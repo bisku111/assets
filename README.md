@@ -202,7 +202,7 @@ Elenco onesto. Niente è simulato con dati finti.
 | Pitch detection (YIN) e parser MIDI | ✅ implementati e testati |
 | Tastiera a schermo come sorgente di input reale | ✅ |
 | Pentagramma scorrevole (chiavi, armatura, alterazioni, tagli addizionali, gambi, accordi) | ✅ calcolato nel core e verificato da test, non un'immagine |
-| Mani sui tasti con il dito che si illumina e il numero di diteggiatura | ✅ la diteggiatura è scritta nel contenuto, nota per nota |
+| Numero del dito sul tasto da premere, nel colore della mano | ✅ la diteggiatura è scritta nel contenuto, nota per nota |
 | Modalità IMPARA: spartito, note e tempo restano fermi finché non si suona la nota giusta | ✅ |
 | MIDI e microfono su **web** | ✅ reali (Web MIDI / Web Audio) |
 | MIDI e microfono su **iOS/Android** | ⛔ richiedono il modulo nativo `piano-io` (ARCHITECTURE.md §7.3). L'app lo dichiara all'utente e propone la tastiera a schermo |

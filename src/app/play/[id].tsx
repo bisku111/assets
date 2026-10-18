@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,7 +7,7 @@ import type { PracticeMode } from '../../core/engine/matcher';
 import type { SessionResult } from '../../core/engine/session';
 import { nextRate, previousRate } from '../../core/learning/progression';
 import { keyboardGeometry } from '../../core/music/keyboard';
-import { handPose, nextFingerTargets } from '../../core/notation/handPose';
+import { nextFingerTargets } from '../../core/notation/fingering';
 import type { Clef } from '../../core/notation/staff';
 import { buildStaffScore, clefForHand } from '../../core/notation/staff';
 import { inputStatusMessageIt, type InputSourceId } from '../../core/ports/noteInput';
@@ -17,7 +17,7 @@ import { ResultSheet } from '../../features/player/ResultSheet';
 import { useKeepScreenAwake } from '../../features/player/useKeepScreenAwake';
 import { usePracticeSession } from '../../features/player/usePracticeSession';
 import { recordPractice, useAppStore } from '../../state/appStore';
-import { HandOverlay } from '../../ui/HandOverlay';
+import { FingerHints, type FingerHint } from '../../ui/FingerHints';
 import { NoteHighway } from '../../ui/NoteHighway';
 import { PianoKeyboard } from '../../ui/PianoKeyboard';
 import { StaffView, staffHeight } from '../../ui/StaffView';
@@ -98,7 +98,7 @@ function PlaySession({ song, arrangement, mode, initialRatePct, initialSectionId
   const [loop, setLoop] = useState(false);
   const [tentativi, setTentativi] = useState(0);
   const [spartito, setSpartito] = useState(true);
-  const [mani, setMani] = useState(true);
+  const [dita, setDita] = useState(true);
 
   const maniAttive = hands ?? arrangement.hands;
 
@@ -115,9 +115,9 @@ function PlaySession({ song, arrangement, mode, initialRatePct, initialSectionId
       hands={maniAttive}
       loop={loop}
       showStaff={spartito}
-      showHands={mani}
+      showFingers={dita}
       onToggleStaff={() => setSpartito((v) => !v)}
-      onToggleHands={() => setMani((v) => !v)}
+      onToggleFingers={() => setDita((v) => !v)}
       attempts={tentativi}
       onAttempt={() => setTentativi((n) => n + 1)}
       onSetRate={setRatePct}
@@ -135,9 +135,9 @@ interface PlayStageProps extends Omit<PlaySessionProps, 'initialRatePct' | 'init
   hands: Hand[];
   loop: boolean;
   showStaff: boolean;
-  showHands: boolean;
+  showFingers: boolean;
   onToggleStaff: () => void;
-  onToggleHands: () => void;
+  onToggleFingers: () => void;
   attempts: number;
   onAttempt: () => void;
   onSetRate: (rate: number) => void;
@@ -148,12 +148,11 @@ interface PlayStageProps extends Omit<PlaySessionProps, 'initialRatePct' | 'init
 
 function PlayStage({
   song, arrangement, mode, ratePct, sectionId, hands, loop, attempts,
-  showStaff, showHands, onToggleStaff, onToggleHands,
+  showStaff, showFingers, onToggleStaff, onToggleFingers,
   onAttempt, onSetRate, onSetSection, onSetHands, onToggleLoop, onExit,
 }: PlayStageProps) {
   useKeepScreenAwake(); // durante una lezione lo schermo non deve spegnersi
 
-  const poseRef = useRef<Record<Hand, ReturnType<typeof handPose>>>({ left: null, right: null });
 
   const { height } = useWindowDimensions();
   const profile = useAppStore((s) => s.profile);
@@ -271,18 +270,14 @@ function PlayStage({
   const daSuonare: SongNote[] = [];
   for (const stato of view.visibleNotes) if (stato.status === 'pending') daSuonare.push(stato.note);
 
-  // Le mani restano dove sono fra una nota e l'altra, come quelle vere:
-  // se non c'è nulla da preparare si tiene l'ultima posa buona.
-  const posa = (hand: Hand) => {
-    if (!showHands || !hands.includes(hand)) return null;
-    const nuova = handPose(
-      hand,
-      nextFingerTargets(daSuonare, hand, view.frame.positionMs, ANTICIPO_MANI_MS),
-      geometria,
-    );
-    if (nuova) poseRef.current[hand] = nuova;
-    return poseRef.current[hand];
-  };
+  const diteggiatura: FingerHint[] = [];
+  if (showFingers) {
+    for (const hand of hands) {
+      for (const target of nextFingerTargets(daSuonare, hand, view.frame.positionMs, ANTICIPO_DITA_MS)) {
+        diteggiatura.push({ hand, midi: target.midi, finger: target.finger });
+      }
+    }
+  }
   // La tastiera cresce con lo schermo ma entro limiti: troppo bassa non
   // si colpisce, troppo alta ruba spazio alle note in arrivo.
   const altezzaTastiera = Math.min(260, Math.max(140, height * 0.3));
@@ -322,7 +317,7 @@ function PlayStage({
         ) : null}
         {sectionId ? <Comando label="Loop" attivo={loop} onPress={onToggleLoop} /> : null}
         <Comando label="Spartito" attivo={showStaff} onPress={onToggleStaff} />
-        <Comando label="Mani" attivo={showHands} onPress={onToggleHands} />
+        <Comando label="Dita" attivo={showFingers} onPress={onToggleFingers} />
       </View>
 
       {/* ---- Spartito: la stessa musica, scritta ---- */}
@@ -386,7 +381,7 @@ function PlayStage({
         )}
       </View>
 
-      {/* ---- Tastiera, con le mani sopra ---- */}
+      {/* ---- Tastiera, con il numero del dito sui tasti da premere ---- */}
       <View
         style={{ paddingHorizontal: spacing.sm }}
         onLayout={(e) => setLarghezzaTastiera(e.nativeEvent.layout.width - spacing.sm * 2)}
@@ -404,12 +399,11 @@ function PlayStage({
             height={altezzaTastiera}
           />
           {larghezzaTastiera > 0 ? (
-            <HandOverlay
-              left={posa('left')}
-              right={posa('right')}
+            <FingerHints
+              hints={diteggiatura}
+              geometry={geometria}
               width={larghezzaTastiera}
               height={altezzaTastiera}
-              whiteKeyWidth={geometria.whiteWidth * larghezzaTastiera}
             />
           ) : null}
         </View>
@@ -433,11 +427,11 @@ function PlayStage({
 }
 
 /**
- * Quanto prima le mani mostrano il prossimo attacco. Troppo presto e
- * indicherebbero tasti che non servono ancora; troppo tardi e non si
- * farebbe in tempo a spostare la mano.
+ * Quanto prima compare il numero del dito. Troppo presto e indicherebbe
+ * tasti che non servono ancora; troppo tardi e non si farebbe in tempo
+ * a spostare la mano.
  */
-const ANTICIPO_MANI_MS = 1600;
+const ANTICIPO_DITA_MS = 1600;
 
 function Comando({
   label, onPress, attivo, colore,

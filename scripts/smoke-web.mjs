@@ -160,17 +160,16 @@ try {
   passo('il tutorial mostra la tastiera', await visibile(page.getByLabel('DO4')));
   passo('la modalita IMPARA aspetta la prima nota', await visibile(page.getByText('Suona la nota indicata')));
   passo('il tutorial mostra lo spartito', await visibile(page.getByLabel('Pentagramma')));
-  passo('il tutorial mostra le mani sui tasti', await visibile(page.getByLabel('Posizione delle mani')));
+  passo('il tutorial indica il dito da usare', await visibile(page.getByLabel('Diteggiatura')));
 
-  // Il numero del dito e il nome della nota sono l'informazione che le
-  // mani esistono per dare: senza, sarebbero una decorazione.
+  // Il numero e' tutta l'informazione: senza, il pallino sul tasto
+  // sarebbe una decorazione.
   // allTextContents e non allInnerTexts: innerText esiste solo sugli
   // elementi HTML, e questi sono <text> dentro un SVG.
   const ditoScritto = await page.locator('svg text').allTextContents();
   passo(
-    'le mani indicano quale dito e quale nota',
-    ditoScritto.some((t) => /^[1-5]$/.test(t.trim())) &&
-      ditoScritto.some((t) => /^(DO|RE|MI|FA|SOL|LA|SI)$/.test(t.trim())),
+    'il numero del dito e scritto sul tasto',
+    ditoScritto.some((t) => /^[1-5]$/.test(t.trim())),
     ditoScritto.filter((t) => t.trim()).slice(0, 4).join(' '),
   );
 
@@ -205,15 +204,15 @@ try {
   passo('dopo la nota giusta il brano riparte', tempoRipreso !== tempoAvanzato,
     `${tempoRipreso} -> ${tempoAvanzato}`);
 
-  // ---- 8b. Spartito e mani si possono togliere ------------------------------
+  // ---- 8b. Spartito e diteggiatura si possono togliere ----------------------
   await toccaVisibile('Spartito');
   await page.waitForTimeout(400);
   passo('lo spartito si puo nascondere',
     !(await page.getByLabel('Pentagramma').first().isVisible().catch(() => false)));
-  await toccaVisibile('Mani');
+  await toccaVisibile('Dita');
   await page.waitForTimeout(400);
-  passo('le mani si possono nascondere',
-    !(await page.getByLabel('Posizione delle mani').first().isVisible().catch(() => false)));
+  passo('la diteggiatura si puo nascondere',
+    !(await page.getByLabel('Diteggiatura').first().isVisible().catch(() => false)));
 
   // ---- 9. Risultato e maestro -----------------------------------------------
   await page.getByRole('button', { name: 'Esci' }).first().click({ delay: 60 });

@@ -94,7 +94,7 @@ La tastiera virtuale non è un ripiego cosmetico: implementa la stessa
 │   │   ├── scoring/            # precisione, ritmo, tempo, punteggio 0–100
 │   │   ├── coach/              # decisioni didattiche + frasi in italiano
 │   │   ├── learning/           # progressione 50→100%, avanzamento a sezioni
-│   │   ├── notation/           # pentagramma, armature, diteggiatura, posa mani
+│   │   ├── notation/           # pentagramma, armature, diteggiatura
 │   │   ├── midi/               # parser byte MIDI, gestione pedale
 │   │   ├── dsp/                # YIN, tracciamento note, calibrazione latenza
 │   │   ├── gamification/       # XP, livelli, striscia, medaglie
@@ -238,7 +238,7 @@ una nota, si fermano insieme. Non ci sono tre orologi.
 |---|---|---|
 | Pentagramma | imparare a leggere la musica scritta | `core/notation/staff.ts` + `ui/StaffView.tsx` |
 | Corsia delle note | capire *quando* suonare, senza saper leggere | `ui/NoteHighway.tsx` |
-| Mani sui tasti | capire *con quale dito* | `core/notation/handPose.ts` + `ui/HandOverlay.tsx` |
+| Numero del dito sul tasto | capire *con quale dito* | `core/notation/fingering.ts` + `ui/FingerHints.tsx` |
 
 **Il calcolo sta nel core, il disegno nella UI.** `staff.ts` non disegna
 niente: decide come si scrive una nota (DO# o REb, secondo l'armatura), su
@@ -256,10 +256,13 @@ tasto che indica, e un aiuto visivo disallineato è peggio di nessun aiuto.
 
 **Le dita sono dati, non disegno.** Ogni nota del catalogo porta la sua
 diteggiatura scritta nel contenuto (`DO4:1@3` = DO4, un movimento, dito
-medio). `handPose()` aggancia il polpastrello del dito richiesto al centro
-esatto del suo tasto e dispone le altre dita intorno con la spaziatura
-naturale della mano. Quando una nota non ha diteggiatura, il dito non si
-accende: non se ne inventa una.
+medio), e il numero compare sul tasto da premere poco prima che serva.
+Quando una nota non ha diteggiatura non compare nulla: non se ne inventa una.
+
+Una prima versione disegnava le due mani intere sopra la tastiera, come fanno
+le app di riferimento. È stata tolta dopo la prova sul campo: la sagoma copre
+i tasti e distrae dall'unica informazione che deve dare, cioè il numero del
+dito. Resta il numero, nel colore della mano, sul tasto giusto.
 
 **Le finestre si misurano in movimenti, non in secondi.** Otto movimenti di
 pentagramma e quattro di corsia restano tali anche al 50% di velocità: la
