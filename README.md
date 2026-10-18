@@ -201,7 +201,9 @@ Elenco onesto. Niente è simulato con dati finti.
 | Motore temporale, matching, punteggio, coach | ✅ implementati e testati |
 | Pitch detection (YIN) e parser MIDI | ✅ implementati e testati |
 | Tastiera a schermo come sorgente di input reale | ✅ |
-| Pentagramma scorrevole (chiavi, armatura, alterazioni, tagli addizionali, gambi, accordi) | ✅ calcolato nel core e verificato da test, non un'immagine |
+| Pentagramma scorrevole (chiavi, armatura, alterazioni, tagli addizionali, gambi, accordi) | ✅ calcolato nel core e verificato da test, non un'immagine. Simboli disegnati, non glifi di un font |
+| Teste di nota colorate per mano, con il nome scritto sotto il rigo | ✅ |
+| Nome della nota su tutti i tasti, neri compresi | ✅ scritto in verticale sui neri, dove per largo non ci starebbe |
 | Numero del dito sul tasto da premere, nel colore della mano | ✅ la diteggiatura è scritta nel contenuto, nota per nota |
 | Modalità IMPARA: spartito, note e tempo restano fermi finché non si suona la nota giusta | ✅ |
 | MIDI e microfono su **web** | ✅ reali (Web MIDI / Web Audio) |

@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { welcomeBackIt } from '../../core/coach/coach';
 import { levelProgress } from '../../core/gamification/rules';
+import { startsWithTwoHands } from '../../core/song/query';
 import {
   appStore, continueLearning, loadCatalog, minutesPracticedToday, progressForSong, useAppStore,
 } from '../../state/appStore';
@@ -52,6 +53,7 @@ export default function Home() {
   const repertorio = songs.filter((s) => !s.tags.includes('lezione'));
   const italiane = repertorio.filter((s) => s.tags.includes('italiana') || s.tags.includes('ballata'));
   const principianti = repertorio.filter((s) => s.baseDifficulty === 'beginner');
+  const dueMani = repertorio.filter(startsWithTwoHands);
   const gratuite = repertorio.filter((s) => s.isFree);
 
   const apri = (id: string) => router.push(`/song/${id}`);
@@ -121,6 +123,10 @@ export default function Home() {
 
         <HomeRow title="Per cominciare" subtitle="Brani che si imparano al primo tentativo">
           {principianti.map(scheda)}
+        </HomeRow>
+
+        <HomeRow title="A due mani" subtitle="Destra e sinistra insieme fin dal primo livello">
+          {dueMani.map(scheda)}
         </HomeRow>
 
         <HomeRow title="Canzoni italiane" subtitle="Ballate originali nello stile della canzone italiana">

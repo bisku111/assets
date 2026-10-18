@@ -99,6 +99,7 @@ function PlaySession({ song, arrangement, mode, initialRatePct, initialSectionId
   const [tentativi, setTentativi] = useState(0);
   const [spartito, setSpartito] = useState(true);
   const [dita, setDita] = useState(true);
+  const [nomiNote, setNomiNote] = useState(true);
 
   const maniAttive = hands ?? arrangement.hands;
 
@@ -116,8 +117,10 @@ function PlaySession({ song, arrangement, mode, initialRatePct, initialSectionId
       loop={loop}
       showStaff={spartito}
       showFingers={dita}
+      showNoteNames={nomiNote}
       onToggleStaff={() => setSpartito((v) => !v)}
       onToggleFingers={() => setDita((v) => !v)}
+      onToggleNoteNames={() => setNomiNote((v) => !v)}
       attempts={tentativi}
       onAttempt={() => setTentativi((n) => n + 1)}
       onSetRate={setRatePct}
@@ -136,8 +139,10 @@ interface PlayStageProps extends Omit<PlaySessionProps, 'initialRatePct' | 'init
   loop: boolean;
   showStaff: boolean;
   showFingers: boolean;
+  showNoteNames: boolean;
   onToggleStaff: () => void;
   onToggleFingers: () => void;
+  onToggleNoteNames: () => void;
   attempts: number;
   onAttempt: () => void;
   onSetRate: (rate: number) => void;
@@ -148,7 +153,7 @@ interface PlayStageProps extends Omit<PlaySessionProps, 'initialRatePct' | 'init
 
 function PlayStage({
   song, arrangement, mode, ratePct, sectionId, hands, loop, attempts,
-  showStaff, showFingers, onToggleStaff, onToggleFingers,
+  showStaff, showFingers, showNoteNames, onToggleStaff, onToggleFingers, onToggleNoteNames,
   onAttempt, onSetRate, onSetSection, onSetHands, onToggleLoop, onExit,
 }: PlayStageProps) {
   useKeepScreenAwake(); // durante una lezione lo schermo non deve spegnersi
@@ -318,6 +323,7 @@ function PlayStage({
         {sectionId ? <Comando label="Loop" attivo={loop} onPress={onToggleLoop} /> : null}
         <Comando label="Spartito" attivo={showStaff} onPress={onToggleStaff} />
         <Comando label="Dita" attivo={showFingers} onPress={onToggleFingers} />
+        <Comando label="Note" attivo={showNoteNames} onPress={onToggleNoteNames} />
       </View>
 
       {/* ---- Spartito: la stessa musica, scritta ---- */}
@@ -393,7 +399,7 @@ function PlayStage({
             pressed={view.pressed}
             expected={view.expectedNow}
             wrong={view.wrong}
-            showNoteNames={mode === 'learn'}
+            showNoteNames={showNoteNames}
             onPressKey={pressKey}
             onReleaseKey={releaseKey}
             height={altezzaTastiera}

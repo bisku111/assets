@@ -19,6 +19,7 @@ import type {
  *   DO4+MI4+SOL4:2   accordo (le note partono insieme)
  *   -:2              pausa di 2 movimenti
  *   DO4:1@1          nota con diteggiatura (1 = pollice)
+ *   DO3@5+SOL3@1     accordo con un dito diverso per ogni nota
  *   DO4~:4 / DO4:4~  nota tenuta oltre il proprio valore (pedale)
  *
  * I nomi accettati sono sia italiani (DO RE MI FA SOL LA SI) sia
@@ -43,9 +44,23 @@ export class NotationError extends Error {
   }
 }
 
-// La legatura (~) è accettata sia prima sia dopo la durata: chi scrive
-// contenuti non deve ricordare un ordine arbitrario.
-const TOKEN_RE = /^([A-Za-z#b0-9+\-]+?)(~?)(?::(\d+(?:\.\d+)?))?(~?)(?:@([1-5]))?$/;
+// Una nota: nome, eventuale alterazione, ottava, e la sua diteggiatura.
+const PITCH = String.raw`[A-Za-z]+[#b]?-?\d+(?:@[1-5])?`;
+
+/**
+ * Un token completo.
+ *
+ * Il gruppo delle altezze è scritto per esteso e non come "tutto
+ * quello che non è due punti": così `DO3@5+SOL3@1` si legge come due
+ * note con due dita, senza che l'ultimo @1 possa essere scambiato per
+ * la diteggiatura dell'intero accordo.
+ *
+ * La legatura (~) è accettata sia prima sia dopo la durata: chi scrive
+ * contenuti non deve ricordare un ordine arbitrario.
+ */
+const TOKEN_RE = new RegExp(
+  `^(${PITCH}(?:\\+${PITCH})*|-)(~?)(?::(\\d+(?:\\.\\d+)?))?(~?)(?:@([1-5]))?$`,
+);
 
 interface ParsedVoice {
   notes: SongNote[];
@@ -74,7 +89,11 @@ export function parseVoice(spec: string, options: VoiceOptions): ParsedVoice {
       // Una nota "tenuta" dura più del suo valore ritmico: è il modo di
       // scrivere il pedale senza inventare un altro concetto.
       const sustainFactor = tie ? 1.6 : legato;
-      for (const pitchText of pitches.split('+')) {
+      for (const parte of pitches.split('+')) {
+        // La diteggiatura della singola nota vince su quella scritta
+        // per tutto il token: `DO4+MI4@3` dà il dito 3 a entrambe,
+        // `DO4@1+MI4@3` dà a ciascuna il suo.
+        const [pitchText, fingerText] = parte.split('@') as [string, string | undefined];
         const midi = parseNoteName(pitchText);
         if (midi === null) throw new NotationError(token, `nota sconosciuta "${pitchText}"`);
 
@@ -84,7 +103,8 @@ export function parseVoice(spec: string, options: VoiceOptions): ParsedVoice {
           durationMs: Math.max(60, Math.round(durationBeats * msPerBeat * sustainFactor)),
           hand,
         };
-        if (rawFinger) note.finger = Number.parseInt(rawFinger, 10);
+        const finger = fingerText ?? rawFinger;
+        if (finger) note.finger = Number.parseInt(finger, 10);
         if (sectionId) note.sectionId = sectionId;
         if (velocity !== undefined) note.velocity = velocity;
         notes.push(note);

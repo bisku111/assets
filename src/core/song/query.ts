@@ -81,3 +81,18 @@ export function formatDuration(ms: number): string {
   const total = Math.max(0, Math.round(ms / 1000));
   return `${Math.floor(total / 60)}:${`${total % 60}`.padStart(2, '0')}`;
 }
+
+/**
+ * Il brano chiede due mani già dal livello più facile.
+ *
+ * Non basta che un arrangiamento qualsiasi le preveda: quasi tutti i
+ * brani diventano a due mani salendo di livello. Chi cerca "un brano a
+ * due mani" vuole partire subito così, senza prima finire la versione
+ * per sola destra.
+ */
+export function startsWithTwoHands(song: Song): boolean {
+  const piuFacile = [...song.arrangements].sort(
+    (a, b) => DIFFICULTY_ORDER.indexOf(a.difficulty) - DIFFICULTY_ORDER.indexOf(b.difficulty),
+  )[0];
+  return (piuFacile?.hands.length ?? 0) >= 2;
+}

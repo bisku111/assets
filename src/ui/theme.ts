@@ -66,6 +66,16 @@ export function handColor(hand: 'left' | 'right'): string {
   return hand === 'right' ? colors.rightHand : colors.leftHand;
 }
 
+/**
+ * Le stesse due mani, ma scritte sulla carta chiara dello spartito.
+ *
+ * L'azzurro e l'ambra sono nati per il fondo scuro: sul foglio color
+ * avorio sparirebbero. Qui servono due inchiostri, non due luci.
+ */
+export function handInk(hand: 'left' | 'right'): string {
+  return hand === 'right' ? '#0B5E92' : '#8A4F04';
+}
+
 export function scoreColor(score: number): string {
   if (score >= 85) return colors.success;
   if (score >= 60) return colors.warning;

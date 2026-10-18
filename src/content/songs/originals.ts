@@ -336,6 +336,120 @@ export const ESTATE_A_RIMINI: SongDef = {
   ],
 };
 
+// =====================================================================
+// 5. Valzer della domenica — il primo brano scritto per DUE MANI fin dal
+//    livello principiante. Tre tempi, SOL maggiore.
+//
+//    La mano destra resta ferma nella posizione di SOL (pollice su SOL4,
+//    mignolo su RE5): non deve mai spostarsi, e così tutta l'attenzione
+//    va al coordinamento fra le due mani, che è la cosa nuova.
+//
+//    La sinistra impara il valzer in due passi: prima solo il basso
+//    tenuto per tutta la battuta, poi il classico basso-accordo-accordo.
+// =====================================================================
+
+/** Basso sul primo movimento, accordo sul secondo e sul terzo. */
+const valzer = (basso: string, accordo: string) => `${basso}:1@5 ${accordo}:1 ${accordo}:1`;
+
+const VALZER_G = valzer('SOL2', 'RE3@2+SOL3@1');
+const VALZER_C = valzer('DO3', 'MI3@3+SOL3@1');
+const VALZER_D = valzer('RE3', 'FA#3@3+LA3@1');
+
+const VALZER_MELODIA = {
+  // G – C – G – D
+  intro:
+    'SOL4:1@1 SI4:1@3 RE5:1@5 ' +
+    'DO5:2@4 SI4:1@3 ' +
+    'LA4:1@2 SI4:1@3 SOL4:1@1 ' +
+    'LA4:3@2',
+  // G – G – C – G – C – G – D – G
+  chorus:
+    'RE5:1@5 SI4:1@3 SOL4:1@1 ' +
+    'SI4:2@3 RE5:1@5 ' +
+    'DO5:1@4 SI4:1@3 LA4:1@2 ' +
+    'SOL4:3@1 ' +
+    'DO5:1@4 RE5:1@5 DO5:1@4 ' +
+    'SI4:2@3 SOL4:1@1 ' +
+    'LA4:1@2 SI4:1@3 LA4:1@2 ' +
+    'SOL4:3@1',
+  // C – G – D – G
+  outro:
+    'DO5:1@4 SI4:1@3 LA4:1@2 ' +
+    'SI4:2@3 SOL4:1@1 ' +
+    'LA4:3@2 ' +
+    'SOL4:3~@1',
+};
+
+export const VALZER_DOMENICA: SongDef = {
+  id: 'song-valzer-domenica',
+  slug: 'valzer-della-domenica',
+  title: 'Valzer della domenica',
+  subtitle: 'Il primo brano a due mani',
+  artistId: 'artist-maestro-originals',
+  artistName: 'Maestro Originals',
+  coverColors: ['#3B2410', '#E0A458'],
+  bpm: 120,
+  keySignature: 'G',
+  timeSignature: [3, 4],
+  isFree: true,
+  tags: ['due-mani', 'principianti', 'valzer', 'italiana'],
+  license: ORIGINAL_LICENSE,
+  arrangements: [
+    {
+      difficulty: 'beginner',
+      suggestedStartRate: 0.6,
+      sections: [
+        {
+          id: 'intro', kind: 'intro', name: 'Giravolta',
+          right: VALZER_MELODIA.intro,
+          // Un basso solo per battuta: la sinistra si limita a tenere il
+          // tempo mentre la destra impara la melodia.
+          left: 'SOL3:3@1 DO3:3@5 SOL3:3@1 RE3:3@4',
+          chords: ['G', 'C', 'G', 'D'],
+        },
+        {
+          id: 'chorus', kind: 'chorus', name: 'Ritornello', loopRecommended: true,
+          right: VALZER_MELODIA.chorus,
+          left: 'SOL3:3@1 SOL3:3@1 DO3:3@5 SOL3:3@1 DO3:3@5 SOL3:3@1 RE3:3@4 SOL3:3@1',
+          chords: ['G', 'G', 'C', 'G', 'C', 'G', 'D', 'G'],
+        },
+        {
+          id: 'outro', kind: 'outro', name: 'Inchino',
+          right: VALZER_MELODIA.outro,
+          left: 'DO3:3@5 SOL3:3@1 RE3:3@4 SOL3:3~@1',
+          chords: ['C', 'G', 'D', 'G'],
+        },
+      ],
+    },
+    {
+      difficulty: 'easy',
+      suggestedStartRate: 0.6,
+      sections: [
+        {
+          id: 'intro', kind: 'intro', name: 'Giravolta',
+          right: VALZER_MELODIA.intro,
+          left: `${VALZER_G} ${VALZER_C} ${VALZER_G} ${VALZER_D}`,
+          chords: ['G', 'C', 'G', 'D'],
+        },
+        {
+          id: 'chorus', kind: 'chorus', name: 'Ritornello', loopRecommended: true,
+          right: VALZER_MELODIA.chorus,
+          left:
+            `${VALZER_G} ${VALZER_G} ${VALZER_C} ${VALZER_G} ` +
+            `${VALZER_C} ${VALZER_G} ${VALZER_D} ${VALZER_G}`,
+          chords: ['G', 'G', 'C', 'G', 'C', 'G', 'D', 'G'],
+        },
+        {
+          id: 'outro', kind: 'outro', name: 'Inchino',
+          right: VALZER_MELODIA.outro,
+          left: `${VALZER_C} ${VALZER_G} ${VALZER_D} SOL2:1@5 RE3@2+SOL3@1:2~`,
+          chords: ['C', 'G', 'D', 'G'],
+        },
+      ],
+    },
+  ],
+};
+
 export const ORIGINAL_SONGS: SongDef[] = [
-  PIANO_PIANO, BALLATA_LUNGOMARE, NOTTE_DI_SETTEMBRE, ESTATE_A_RIMINI,
+  PIANO_PIANO, VALZER_DOMENICA, BALLATA_LUNGOMARE, NOTTE_DI_SETTEMBRE, ESTATE_A_RIMINI,
 ];

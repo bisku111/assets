@@ -141,6 +141,9 @@ try {
   // ---- 3. Home ---------------------------------------------------------
   passo('la Home mostra le fasce di brani', await visibile(page.getByText('Per cominciare')));
   passo("la Home mostra l'obiettivo del giorno", await visibile(page.getByText(/0 \/ 10 minuti/)));
+  passo('la Home propone i brani a due mani', await visibile(page.getByText('A due mani')));
+  passo('fra questi c e il valzer a due mani',
+    await visibile(page.getByText('Valzer della domenica').first()));
 
   // ---- 4. Catalogo ------------------------------------------------------
   await page.getByText('Canzoni', { exact: true }).last().click({ force: true, delay: 60 });
@@ -166,12 +169,19 @@ try {
   // sarebbe una decorazione.
   // allTextContents e non allInnerTexts: innerText esiste solo sugli
   // elementi HTML, e questi sono <text> dentro un SVG.
-  const ditoScritto = await page.locator('svg text').allTextContents();
+  const scritte = await page.locator('svg text').allTextContents();
   passo(
     'il numero del dito e scritto sul tasto',
-    ditoScritto.some((t) => /^[1-5]$/.test(t.trim())),
-    ditoScritto.filter((t) => t.trim()).slice(0, 4).join(' '),
+    scritte.some((t) => /^[1-5]$/.test(t.trim())),
+    scritte.filter((t) => t.trim()).slice(0, 4).join(' '),
   );
+  passo(
+    'sotto il pentagramma c e il nome della nota',
+    scritte.some((t) => /^(DO|RE|MI|FA|SOL|LA|SI)[#b]?$/.test(t.trim())),
+  );
+  // I nomi stanno anche sui tasti, neri compresi: e' quello che chiede
+  // chi non sa ancora dove mettere le dita.
+  passo('i tasti neri portano il loro nome', await visibile(page.getByText('FA#', { exact: true }).first()));
 
   // Finche' la nota non arriva, niente si muove: e' il senso della
   // modalita' IMPARA, e vale per il tempo, per lo spartito e per la corsia.

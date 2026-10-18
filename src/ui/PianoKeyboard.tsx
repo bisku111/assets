@@ -31,7 +31,7 @@ export interface PianoKeyboardProps {
   wrong?: readonly number[];
   onPressKey?: (midi: number) => void;
   onReleaseKey?: (midi: number) => void;
-  /** Mostra DO RE MI sui tasti bianchi: utile ai principianti. */
+  /** Mostra DO RE MI su tutti i tasti, neri compresi. */
   showNoteNames?: boolean;
   height?: number;
 }
@@ -67,7 +67,7 @@ export function PianoKeyboard({
           pressed={pressedSet.has(box.midi)}
           expectedHand={expected?.get(box.midi)}
           wrong={wrongSet.has(box.midi)}
-          label={showNoteNames && !box.black ? noteNameIt(box.midi, false) : undefined}
+          label={showNoteNames ? noteNameIt(box.midi, false) : undefined}
           onPressKey={onPressKey}
           onReleaseKey={onReleaseKey}
         />
@@ -118,12 +118,19 @@ function Key({
       ) : null}
 
       {label ? (
-        <Text
-          variant="caption"
-          style={[styles.keyLabel, { color: pressed ? colors.surface : colors.textFaint }]}
-        >
-          {label}
-        </Text>
+        black ? (
+          // Sul tasto nero il nome non ci sta per largo: si scrive in
+          // verticale. La larghezza fissa serve a far girare il testo
+          // attorno al proprio centro senza spostarlo di lato.
+          <Text variant="caption" style={styles.blackKeyLabel}>{label}</Text>
+        ) : (
+          <Text
+            variant="caption"
+            style={[styles.keyLabel, { color: pressed ? colors.surface : colors.textFaint }]}
+          >
+            {label}
+          </Text>
+        )
       ) : null}
     </Pressable>
   );
@@ -165,4 +172,12 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   keyLabel: { fontSize: 10 },
+  blackKeyLabel: {
+    fontSize: 9,
+    width: 44,
+    textAlign: 'center',
+    color: '#C9C9DC',
+    marginBottom: 6,
+    transform: [{ rotate: '-90deg' }],
+  },
 });

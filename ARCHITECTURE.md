@@ -217,11 +217,16 @@ del livello Principiante seguirebbe la lunghezza del livello Completo.
 I contenuti si scrivono in **notazione compatta** invece che in JSON a mano:
 
 ```
-LA4:2@1       nota LA4, due movimenti, pollice
-DO4+MI4+SOL4:2  accordo
--:2           pausa
-LA3:4~        nota tenuta (pedale)
+LA4:2@1            nota LA4, due movimenti, pollice
+DO4+MI4+SOL4:2     accordo
+DO3@5+SOL3@1:1     accordo con un dito diverso per ogni nota
+-:2                pausa
+LA3:4~             nota tenuta (pedale)
 ```
+
+La diteggiatura per singola nota non è un vezzo: un accordo di valzer in
+mano sinistra si prende col mignolo e col pollice, e scrivere lo stesso
+numero su entrambe le note sarebbe un dato falso, non una semplificazione.
 
 Scrivere migliaia di millisecondi a mano produce errori di sincronizzazione che
 poi si scaricano sull'utente durante la lezione.
@@ -253,6 +258,17 @@ violino e sopra il basso.
 dice dove cade ogni tasto, in frazioni di larghezza. La usano i tre
 componenti: se ognuno ricalcolasse le posizioni, un dito finirebbe accanto al
 tasto che indica, e un aiuto visivo disallineato è peggio di nessun aiuto.
+
+**Tutto quello che si può scrivere, si scrive.** Il nome della nota compare
+sul tasto (neri compresi, in verticale perché per largo non ci sta) e sotto
+la testa sul pentagramma; le teste portano il colore della loro mano, lo
+stesso delle note che scendono. Tre rappresentazioni, un solo codice colore.
+
+**Niente glifi musicali presi dai font.** Chiavi, diesis, bemolli e bequadri
+sono disegnati. U+266F e U+1D11E non esistono in tutti i font di sistema, e
+un'armatura che sparisce cambia la tonalità del brano agli occhi di chi
+legge. L'armatura è stata effettivamente invisibile finché non me ne sono
+accorto guardando uno screenshot.
 
 **Le dita sono dati, non disegno.** Ogni nota del catalogo porta la sua
 diteggiatura scritta nel contenuto (`DO4:1@3` = DO4, un movimento, dito

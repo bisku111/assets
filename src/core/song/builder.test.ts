@@ -98,3 +98,33 @@ describe('costruzione del brano', () => {
     expect(song.durationMs).toBe(Math.max(breve!.durationMs, lungo!.durationMs));
   });
 });
+
+describe('diteggiatura per nota dentro un accordo', () => {
+  const opzioni = { hand: 'left' as const, bpm: 120 };
+
+  it('dà a ogni nota il suo dito', () => {
+    const { notes } = parseVoice('DO3@5+SOL3@2+MI4@1:2', opzioni);
+    expect(notes.map((n) => [n.midi, n.finger])).toEqual([[48, 5], [55, 2], [64, 1]]);
+  });
+
+  it('non confonde il dito dell ultima nota con quello dell accordo', () => {
+    // Senza durata scritta, `MI4@3` è la diteggiatura del MI, non di
+    // tutto l'accordo: il DO conserva il suo.
+    const { notes } = parseVoice('DO4@1+MI4@3', opzioni);
+    expect(notes.map((n) => n.finger)).toEqual([1, 3]);
+  });
+
+  it('conserva la forma breve: un dito solo vale per tutto l accordo', () => {
+    const { notes } = parseVoice('DO4+MI4+SOL4:2@3', opzioni);
+    expect(notes.map((n) => n.finger)).toEqual([3, 3, 3]);
+  });
+
+  it('accetta le alterazioni dentro l accordo con diteggiatura', () => {
+    const { notes } = parseVoice('RE3@5+FA#3@3+LA3@1:1', opzioni);
+    expect(notes.map((n) => [n.midi, n.finger])).toEqual([[50, 5], [54, 3], [57, 1]]);
+  });
+
+  it('rifiuta un dito fuori dall intervallo 1..5', () => {
+    expect(() => parseVoice('DO4@6', opzioni)).toThrow(NotationError);
+  });
+});
