@@ -19,7 +19,7 @@ import { colors, spacing } from '../../ui/theme';
 /**
  * Home.
  *
- * Prima riga: riprendere quello che si stava facendo. E' l'azione che
+ * Prima riga: riprendere quello che si stava facendo. È l'azione che
  * l'utente abituale compie nove volte su dieci, e metterla sopra a tutto
  * le fa risparmiare due tocchi ogni sessione.
  */

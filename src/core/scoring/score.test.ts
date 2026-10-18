@@ -22,7 +22,7 @@ describe('punteggio', () => {
   it('separa il tempo dal ritmo: costante ma in ritardo batte irregolare', () => {
     // A: sempre 60 ms indietro. Deve solo spostarsi.
     const costante = computeScore(snapshot({ deviations: Array(20).fill(60) }), { toleranceMs: 200 });
-    // B: stessa media assoluta, ma meta' avanti e meta' indietro.
+    // B: stessa media assoluta, ma metà avanti e metà indietro.
     const irregolare = computeScore(
       snapshot({ deviations: Array.from({ length: 20 }, (_, i) => (i % 2 ? 60 : -60)) }),
       { toleranceMs: 200 },
@@ -44,8 +44,8 @@ describe('punteggio', () => {
   });
 
   it('non regala tempo e ritmo su note mai suonate', () => {
-    // Una nota su quattro, presa perfettamente: il voto non puo' essere
-    // piu' alto della percentuale di brano effettivamente eseguita.
+    // Una nota su quattro, presa perfettamente: il voto non può essere
+    // più alto della percentuale di brano effettivamente eseguita.
     const r = computeScore(snapshot({ expected: 4, correct: 1, missed: 3, deviations: [0] }), {
       toleranceMs: 200,
     });

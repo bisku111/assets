@@ -10,8 +10,8 @@ import { colors, spacing } from '../../ui/theme';
  * Struttura comune alle tre domande iniziali.
  *
  * Una domanda per schermata, risposte grandi, nessun pulsante "avanti":
- * si tocca la risposta e si va avanti. Ogni tocco in meno e' un utente
- * in piu' che arriva alla prima lezione.
+ * si tocca la risposta e si va avanti. Ogni tocco in meno è un utente
+ * in più che arriva alla prima lezione.
  */
 export function OnboardingStep({
   step, total, question, hint, children,

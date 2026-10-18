@@ -7,7 +7,7 @@ import type { Artist, DifficultyKey, Hand, Song } from '../song/types';
  *
  * Due implementazioni con lo stesso contratto: una locale (dispositivo)
  * e una remota (Supabase). L'app funziona con l'una o con l'altra senza
- * saperlo — ed e' il motivo per cui puo' partire e restare utilizzabile
+ * saperlo — ed è il motivo per cui può partire e restare utilizzabile
  * anche senza rete e senza backend configurato.
  */
 
@@ -101,7 +101,7 @@ export interface ProgressPort {
   saveSession(session: PracticeSessionRecord): Promise<void>;
 }
 
-/** Errore che la UI puo' mostrare cosi' com'e': gia' scritto per l'utente. */
+/** Errore che la UI può mostrare così com'è: già scritto per l'utente. */
 export class UserFacingError extends Error {
   constructor(message: string, override readonly cause?: unknown) {
     super(message);

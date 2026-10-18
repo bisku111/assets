@@ -30,11 +30,11 @@ describe('trasporto', () => {
   it('non accumula deriva: mille letture danno lo stesso risultato di una', () => {
     const { clock, transport } = make({ durationMs: 3_600_000 });
     transport.play();
-    // Dieci minuti letti a 60 fps: e' il caso in cui un contatore
+    // Dieci minuti letti a 60 fps: è il caso in cui un contatore
     // incrementale sbaglierebbe di decine di millisecondi.
     for (let i = 0; i < 36_000; i++) {
       clock.advance(16.6667);
-      void transport.positionMs; // la lettura e' il punto: innesca il ricalcolo
+      void transport.positionMs; // la lettura è il punto: innesca il ricalcolo
     }
     expect(transport.positionMs).toBeCloseTo(600_001.2, 0);
   });
@@ -44,7 +44,7 @@ describe('trasporto', () => {
     transport.play();
     clock.advance(3000);
     transport.pause();
-    clock.advance(50_000); // l'utente e' andato a prendere un caffe'
+    clock.advance(50_000); // l'utente è andato a prendere un caffe'
     expect(transport.positionMs).toBe(3000);
     transport.play();
     clock.advance(1000);

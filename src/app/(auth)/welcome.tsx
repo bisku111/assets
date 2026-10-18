@@ -12,7 +12,7 @@ import { colors, spacing } from '../../ui/theme';
  *
  * "Inizia subito" viene prima di "accedi": chi scarica un'app per
  * imparare il pianoforte vuole suonare, non compilare un modulo. L'account
- * serve a sincronizzare, e lo si propone quando c'e' qualcosa da
+ * serve a sincronizzare, e lo si propone quando c'è qualcosa da
  * sincronizzare.
  */
 export default function Welcome() {
@@ -47,7 +47,7 @@ export default function Welcome() {
         {remote ? (
           <>
             <Button
-              label="Ho gia un account"
+              label="Ho già un account"
               variant="secondary"
               onPress={() => router.push('/(auth)/sign-in')}
               style={{ marginTop: spacing.sm }}
@@ -63,7 +63,7 @@ export default function Welcome() {
           // Si dice la verita' invece di mostrare pulsanti che non
           // funzionerebbero: senza servizio configurato l'account non esiste.
           <Text variant="caption" tone="faint" center style={{ marginTop: spacing.lg }}>
-            Il servizio di sincronizzazione non e' configurato: i tuoi progressi
+            Il servizio di sincronizzazione non è configurato: i tuoi progressi
             resteranno su questo dispositivo.
           </Text>
         )}

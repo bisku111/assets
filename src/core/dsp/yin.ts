@@ -2,23 +2,23 @@
  * Rilevamento dell'altezza con l'algoritmo YIN
  * (de Cheveigne & Kawahara, 2002).
  *
- * Perche' YIN e non la FFT: la trasformata dice quali frequenze sono
+ * Perché YIN e non la FFT: la trasformata dice quali frequenze sono
  * presenti, non quale sia la FONDAMENTALE. Su un pianoforte la prima
- * armonica e' spesso piu' forte della fondamentale, e un rilevatore
+ * armonica è spesso più forte della fondamentale, e un rilevatore
  * basato sul picco dello spettro risponde "un'ottava sopra". YIN lavora
- * nel dominio del tempo sull'autocorrelazione normalizzata ed e' molto
- * piu' robusto proprio all'errore di ottava.
+ * nel dominio del tempo sull'autocorrelazione normalizzata ed è molto
+ * più robusto proprio all'errore di ottava.
  *
- * LIMITE DICHIARATO: YIN e' MONOFONICO. Su un accordo restituisce una
- * sola altezza, tipicamente la nota piu' forte. Non e' un difetto
- * dell'implementazione, e' la natura dell'algoritmo. Per questo la
+ * LIMITE DICHIARATO: YIN è MONOFONICO. Su un accordo restituisce una
+ * sola altezza, tipicamente la nota più forte. Non è un difetto
+ * dell'implementazione, è la natura dell'algoritmo. Per questo la
  * sorgente microfono si dichiara `polyphonic: false` e l'app consiglia
  * il MIDI a chi vuole studiare gli accordi.
  */
 
 export interface PitchResult {
   frequencyHz: number;
-  /** 0..1: quanto il segnale e' periodico. Sotto 0.5 e' rumore. */
+  /** 0..1: quanto il segnale è periodico. Sotto 0.5 è rumore. */
   clarity: number;
   /** Ampiezza efficace del blocco analizzato. */
   rms: number;
@@ -26,7 +26,7 @@ export interface PitchResult {
 
 export interface YinOptions {
   sampleRate: number;
-  /** Soglia YIN: piu' bassa = piu' selettiva. 0.10-0.15 e' l'intervallo utile. */
+  /** Soglia YIN: più bassa = più selettiva. 0.10-0.15 è l'intervallo utile. */
   threshold?: number;
   /** Sotto questa ampiezza si considera silenzio e non si tenta il calcolo. */
   rmsThreshold?: number;
@@ -75,7 +75,7 @@ export function detectPitch(buffer: Float32Array | number[], options: YinOptions
   }
 
   // --- Passo 2: differenza media cumulativa normalizzata --------------
-  // E' il passo che distingue YIN da una semplice autocorrelazione:
+  // È il passo che distingue YIN da una semplice autocorrelazione:
   // toglie la tendenza a preferire tau piccoli, cioe' le ottave alte.
   const normalized = new Float32Array(maxTau + 1);
   normalized[0] = 1;
@@ -99,7 +99,7 @@ export function detectPitch(buffer: Float32Array | number[], options: YinOptions
 
   if (tauEstimate === -1) {
     // Nessuna valle sotto soglia: si prende il minimo assoluto, ma la
-    // chiarezza sara' bassa e il chiamante potra' scartarlo.
+    // chiarezza sarà bassa e il chiamante potra' scartarlo.
     let best = minTau;
     for (let tau = minTau + 1; tau <= maxTau; tau++) {
       if ((normalized[tau] as number) < (normalized[best] as number)) best = tau;
@@ -127,6 +127,6 @@ function parabolicRefine(values: Float32Array, tau: number, minTau: number, maxT
   if (denominator === 0) return tau;
   const adjustment = (next - previous) / denominator;
   // Un aggiustamento oltre mezzo campione significherebbe che il minimo
-  // non e' quello: meglio non fidarsi.
+  // non è quello: meglio non fidarsi.
   return Math.abs(adjustment) > 1 ? tau : tau + adjustment;
 }

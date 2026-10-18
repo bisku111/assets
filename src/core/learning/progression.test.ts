@@ -19,7 +19,7 @@ const ARRANGEMENT = buildSong({
   }],
 }).arrangements[0]!;
 
-describe('progressione di velocita', () => {
+describe('progressione di velocità', () => {
   it('sale e scende lungo la scala 50-60-70-80-90-100', () => {
     expect(RATE_LADDER).toEqual([50, 60, 70, 80, 90, 100]);
     expect(nextRate(70)).toBe(80);
@@ -34,9 +34,9 @@ describe('progressione di velocita', () => {
   });
 
   it('aggancia allo scalino piu vicino un valore intermedio', () => {
-    expect(nextRate(73)).toBe(80);     // 73 e' piu' vicino a 70 -> sale a 80
-    expect(previousRate(64)).toBe(50); // 64 e' piu' vicino a 60 -> scende a 50
-    expect(previousRate(66)).toBe(60); // 66 e' piu' vicino a 70 -> scende a 60
+    expect(nextRate(73)).toBe(80);     // 73 è più vicino a 70 -> sale a 80
+    expect(previousRate(64)).toBe(50); // 64 è più vicino a 60 -> scende a 50
+    expect(previousRate(66)).toBe(60); // 66 è più vicino a 70 -> scende a 60
   });
 });
 
@@ -104,7 +104,7 @@ describe('avanzamento sull arrangiamento', () => {
   });
 });
 
-describe('mano piu in difficolta', () => {
+describe('mano più in difficoltà', () => {
   it('individua quella nettamente indietro', () => {
     expect(weakerHand({ right: { expected: 10, correct: 10 }, left: { expected: 10, correct: 4 } })).toBe('left');
     expect(weakerHand({ right: { expected: 10, correct: 3 }, left: { expected: 10, correct: 10 } })).toBe('right');

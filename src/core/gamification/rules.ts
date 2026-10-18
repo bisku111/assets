@@ -37,7 +37,7 @@ export function sessionXp(
 ): number {
   const base = Math.round(session.score * 0.5);
   const note = Math.min(60, Math.round(session.notesCorrect * 0.5));
-  // Suonare a velocita' piena vale piu' che suonare al rallentatore.
+  // Suonare a velocità piena vale più che suonare al rallentatore.
   const bonusVelocita = Math.round((session.ratePct / 100) * 20);
   const bonusModalita = session.mode === 'performance' ? 25 : 0;
   return Math.max(1, base + note + bonusVelocita + bonusModalita);

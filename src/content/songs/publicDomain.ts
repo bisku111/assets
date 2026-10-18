@@ -5,7 +5,7 @@ import type { SongDef } from '../../core/song/builder';
  *
  * Criterio di ammissione, applicato senza eccezioni: melodia tradizionale
  * anonima, oppure autore deceduto da oltre settant'anni. Sono trascrizioni
- * proprie, non copiate da spartiti altrui: un'edizione critica recente e'
+ * proprie, non copiate da spartiti altrui: un'edizione critica recente è
  * a sua volta protetta, la melodia in se' no.
  */
 
@@ -29,7 +29,7 @@ export const FRA_MARTINO: SongDef = {
   subtitle: 'Canone tradizionale',
   artistId: 'artist-tradizionale',
   artistName: 'Tradizionale e Classici',
-  coverColors: ['#0F3D3E', '#2EC4B6'],
+  coverColors: ['#0F3D3È', '#2EC4B6'],
   bpm: 96,
   keySignature: 'C',
   isFree: true,

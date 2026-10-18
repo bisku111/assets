@@ -31,7 +31,7 @@ export interface AppState {
   progress: SongProgressRecord[];
   recentSessions: PracticeSessionRecord[];
   achievements: AchievementState[];
-  /** Messaggio gia' scritto per l'utente, non un errore tecnico. */
+  /** Messaggio già scritto per l'utente, non un errore tecnico. */
   error: string | null;
   /** false = nessun backend: tutto resta su questo dispositivo. */
   remote: boolean;
@@ -95,7 +95,7 @@ export async function loadCatalog(): Promise<void> {
     ]);
     appStore.setState({
       songs, artists,
-      error: `${messaggioDi(error)} Intanto trovi i brani gia' disponibili sul dispositivo.`,
+      error: `${messaggioDi(error)} Intanto trovi i brani già disponibili sul dispositivo.`,
     });
   }
 }
@@ -157,7 +157,7 @@ export async function updateProfile(patch: Partial<UserProfile>): Promise<void> 
 }
 
 // ---------------------------------------------------------------------
-// Fine di un esercizio: e' il punto in cui tutto si aggiorna
+// Fine di un esercizio: è il punto in cui tutto si aggiorna
 // ---------------------------------------------------------------------
 
 export interface CompletedPractice {
@@ -171,7 +171,7 @@ export interface CompletedPractice {
  *
  * Aggiorna in un colpo solo: sessione storica, progressi della sezione,
  * XP, livello, striscia e medaglie. Lo stato locale viene aggiornato
- * SUBITO e il salvataggio avviene dopo: se la rete e' lenta, l'utente
+ * SUBITO e il salvataggio avviene dopo: se la rete è lenta, l'utente
  * vede comunque il suo risultato senza attendere.
  */
 export async function recordPractice({ song, arrangement, result }: CompletedPractice): Promise<void> {

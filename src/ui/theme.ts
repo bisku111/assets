@@ -4,12 +4,12 @@
  * Impostazione: scuro, tipografia grande, pochissimi elementi. Sullo
  * schermo di un telefono appoggiato al leggio, mentre si suona, contano
  * due cose: leggere le note da lontano e non essere distratti. Ogni
- * decorazione in piu' e' rumore, e con il pianoforte illuminato dal
+ * decorazione in più è rumore, e con il pianoforte illuminato dal
  * basso un fondo chiaro abbaglia.
  *
  * I colori delle mani non sono decorativi: destra e sinistra hanno due
  * tinte stabili in tutta l'app (tastiera, note in arrivo, statistiche),
- * cosi' l'associazione si impara una volta sola. Sono scelte
+ * così l'associazione si impara una volta sola. Sono scelte
  * distinguibili anche da chi confonde rosso e verde.
  */
 

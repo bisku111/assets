@@ -3,7 +3,7 @@ import { Text } from '../../ui/components/Text';
 import { colors } from '../../ui/theme';
 
 /**
- * Quattro sezioni, non di piu'. Le icone sono caratteri: nessun font di
+ * Quattro sezioni, non di più. Le icone sono caratteri: nessun font di
  * icone da caricare, nessuna immagine nel bundle, e si ridimensionano
  * con le impostazioni di accessibilita' del sistema.
  */

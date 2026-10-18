@@ -105,7 +105,7 @@ describe('dal microfono alle note', () => {
 
   it('scarta le note fuori dall estensione del brano', () => {
     const tracker = new AudioNoteTracker({ sampleRate: SAMPLE_RATE, midiRange: { min: 60, max: 72 } });
-    // DO3 (48) e' sotto l'estensione dichiarata: va ignorato.
+    // DO3 (48) è sotto l'estensione dichiarata: va ignorato.
     expect(onsets(play(tracker, [{ midi: 48, blocks: 6 }]))).toEqual([]);
   });
 

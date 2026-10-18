@@ -11,7 +11,7 @@ import { colors, radius, spacing } from '../../ui/theme';
 /**
  * Scheda di un brano in elenco.
  *
- * La copertina e' un blocco di colore e non un'immagine: il repository
+ * La copertina è un blocco di colore e non un'immagine: il repository
  * non contiene copertine protette, e un colore stabile per brano si
  * riconosce comunque a colpo d'occhio nella lista.
  */

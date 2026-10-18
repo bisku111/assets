@@ -6,7 +6,7 @@ import type {
 /**
  * Notazione compatta per scrivere i contenuti.
  *
- * Scrivere le note una per una in JSON e' lento e pieno di errori: un
+ * Scrivere le note una per una in JSON è lento e pieno di errori: un
  * brano di tre minuti sono migliaia di righe in cui basta un numero
  * sbagliato per rompere la sincronizzazione. Questa notazione descrive la
  * musica come la si legge, e i millisecondi li calcola il codice.
@@ -43,7 +43,7 @@ export class NotationError extends Error {
   }
 }
 
-// La legatura (~) e' accettata sia prima sia dopo la durata: chi scrive
+// La legatura (~) è accettata sia prima sia dopo la durata: chi scrive
 // contenuti non deve ricordare un ordine arbitrario.
 const TOKEN_RE = /^([A-Za-z#b0-9+\-]+?)(~?)(?::(\d+(?:\.\d+)?))?(~?)(?:@([1-5]))?$/;
 
@@ -71,7 +71,7 @@ export function parseVoice(spec: string, options: VoiceOptions): ParsedVoice {
     if (!(durationBeats > 0)) throw new NotationError(token, 'durata non valida');
 
     if (pitches !== '-') {
-      // Una nota "tenuta" dura piu' del suo valore ritmico: e' il modo di
+      // Una nota "tenuta" dura più del suo valore ritmico: è il modo di
       // scrivere il pedale senza inventare un altro concetto.
       const sustainFactor = tie ? 1.6 : legato;
       for (const pitchText of pitches.split('+')) {
@@ -140,10 +140,10 @@ export interface SongDef {
 /**
  * Costruisce il brano risolvendo i tempi.
  *
- * Le sezioni sono consecutive: la lunghezza di ciascuna e' quella della
- * voce piu' lunga, arrotondata alla battuta successiva. Arrotondare alla
- * battuta non e' un dettaglio estetico: ripetere in loop una sezione che
- * finisce a meta' battuta suona sbagliato.
+ * Le sezioni sono consecutive: la lunghezza di ciascuna è quella della
+ * voce più lunga, arrotondata alla battuta successiva. Arrotondare alla
+ * battuta non è un dettaglio estetico: ripetere in loop una sezione che
+ * finisce a metà battuta suona sbagliato.
  */
 export function buildSong(def: SongDef): Song {
   const timeSignature = def.timeSignature ?? [4, 4];
@@ -218,7 +218,7 @@ export function buildSong(def: SongDef): Song {
     };
   });
 
-  // La durata del brano e' quella del suo arrangiamento piu' lungo.
+  // La durata del brano è quella del suo arrangiamento più lungo.
   const durationMs = Math.max(...arrangements.map((a) => a.durationMs));
 
   const song: Song = {

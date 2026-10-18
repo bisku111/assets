@@ -3,9 +3,9 @@ import { useCallback, useSyncExternalStore } from 'react';
 /**
  * Store minimale.
  *
- * Non si usa una libreria di stato perche' qui ne basta meno di cento
- * righe, e perche' il tutorial aggiorna a 60 fps: serve poter leggere
- * una fetta sola dello stato senza ri-renderizzare l'albero. Questo e'
+ * Non si usa una libreria di stato perché qui ne basta meno di cento
+ * righe, e perché il tutorial aggiorna a 60 fps: serve poter leggere
+ * una fetta sola dello stato senza ri-renderizzare l'albero. Questo è
  * esattamente cio' che `useSyncExternalStore` con un selettore fa, senza
  * aggiungere una dipendenza.
  */

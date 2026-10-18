@@ -21,7 +21,7 @@ const ORIGINAL_LICENSE = {
 // =====================================================================
 // 1. Piano piano — il primissimo brano. Solo mano destra, note lunghe,
 //    nessuna alterazione: si suona con cinque dita ferme sulla posizione
-//    di DO. E' pensato per essere completato al primo tentativo.
+//    di DO. È pensato per essere completato al primo tentativo.
 // =====================================================================
 export const PIANO_PIANO: SongDef = {
   id: 'song-piano-piano',
@@ -76,7 +76,7 @@ export const PIANO_PIANO: SongDef = {
 
 // =====================================================================
 // 2. Ballata sul lungomare — ballata in LA minore, giro Am-F-C-G.
-//    Tre arrangiamenti: e' il brano che dimostra la progressione
+//    Tre arrangiamenti: è il brano che dimostra la progressione
 //    didattica dello stesso pezzo su tre livelli.
 // =====================================================================
 const BALLATA_MELODY = {
@@ -167,7 +167,7 @@ export const BALLATA_LUNGOMARE: SongDef = {
           id: 'intro', kind: 'intro', name: 'Intro',
           right: BALLATA_MELODY.intro,
           // La sinistra smette di fare da tappeto e diventa movimento:
-          // e' il vero salto di difficolta' fra Facile e Intermedio.
+          // è il vero salto di difficoltà fra Facile e Intermedio.
           left: [ARP_AM, ARP_F, ARP_C, ARP_G].join(' '),
           chords: ['Am', 'F', 'C', 'G'],
         },
@@ -199,7 +199,7 @@ export const BALLATA_LUNGOMARE: SongDef = {
 // =====================================================================
 // 3. Notte di settembre — ballata in DO maggiore, andamento lento.
 //    Brano PREMIUM: serve a verificare che il gating funzioni davvero
-//    (in catalogo si vede, le note no, finche' non c'e' abbonamento).
+//    (in catalogo si vede, le note no, finché non c'è abbonamento).
 // =====================================================================
 export const NOTTE_DI_SETTEMBRE: SongDef = {
   id: 'song-notte-settembre',
@@ -280,7 +280,7 @@ export const NOTTE_DI_SETTEMBRE: SongDef = {
 
 // =====================================================================
 // 4. Estate a Rimini — brano mosso in SOL maggiore, crome nella melodia.
-//    Copre il caso "ritmo veloce": e' il banco di prova della precisione
+//    Copre il caso "ritmo veloce": è il banco di prova della precisione
 //    ritmica e della funzione di rallentamento.
 // =====================================================================
 export const ESTATE_A_RIMINI: SongDef = {

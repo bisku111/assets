@@ -9,9 +9,9 @@ import { PUBLIC_DOMAIN_SONGS } from './songs/publicDomain';
 /**
  * Catalogo dimostrativo incluso nel bundle.
  *
- * E' quello che rende l'app utilizzabile senza backend e senza rete: al
+ * È quello che rende l'app utilizzabile senza backend e senza rete: al
  * primo avvio, offline, su un telefono appena installato. Quando Supabase
- * e' configurato, il catalogo remoto si aggiunge a questo, non lo
+ * è configurato, il catalogo remoto si aggiunge a questo, non lo
  * sostituisce.
  *
  * I brani non validi vengono scartati invece di far crashare il player.

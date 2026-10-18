@@ -28,7 +28,7 @@ describe('interprete MIDI', () => {
   });
 
   it('non lascia che i messaggi real-time rompano il running status', () => {
-    // 0xF8 (clock) infilato in mezzo ai dati: e' il caso reale che manda
+    // 0xF8 (clock) infilato in mezzo ai dati: è il caso reale che manda
     // in confusione i parser ingenui.
     const eventi = new MidiParser().parse([0x90, 60, 100, 0xf8, 62, 100], 0);
     expect(eventi.map((e) => (e as { midi: number }).midi)).toEqual([60, 62]);
@@ -51,7 +51,7 @@ describe('interprete MIDI', () => {
     const p = new MidiParser();
     expect(p.parse([0xb0, 64, 127], 0)).toEqual([{ type: 'sustain', channel: 0, down: true, timestamp: 0 }]);
     expect(p.parse([0xb0, 64, 0], 1)).toEqual([{ type: 'sustain', channel: 0, down: false, timestamp: 1 }]);
-    // Sotto 64 il pedale e' considerato alzato (convenzione MIDI).
+    // Sotto 64 il pedale è considerato alzato (convenzione MIDI).
     expect(p.parse([0xb0, 64, 30], 2)).toEqual([{ type: 'sustain', channel: 0, down: false, timestamp: 2 }]);
   });
 

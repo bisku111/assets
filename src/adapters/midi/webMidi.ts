@@ -41,7 +41,7 @@ export class WebMidiInput implements NoteInputPort {
   private access: MidiAccessLike | null = null;
   private attached: MidiInputDevice[] = [];
 
-  /** L'accesso e' iniettabile: e' cio' che rende testabile questo adapter. */
+  /** L'accesso è iniettabile: è cio' che rende testabile questo adapter. */
   constructor(private readonly requestAccess: RequestMidiAccess | null = defaultRequestAccess()) {}
 
   getStatus(): InputStatus { return this.status; }

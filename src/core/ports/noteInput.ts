@@ -4,7 +4,7 @@ import type { Hand } from '../song/types';
  * Porta di ingresso delle note.
  *
  * Tastiera MIDI, microfono e tastiera a schermo implementano questa stessa
- * interfaccia. Il motore non sa quale sorgente stia usando: e' il motivo
+ * interfaccia. Il motore non sa quale sorgente stia usando: è il motivo
  * per cui aggiungere il MIDI Bluetooth non richiedera' di toccare il
  * matcher, il punteggio o la UI del tutorial.
  */
@@ -30,7 +30,7 @@ export type UnavailableReason =
 export interface PlayedNoteEvent {
   type: 'note-on' | 'note-off';
   midi: number;
-  /** 0..1. Per il microfono e' l'ampiezza normalizzata. */
+  /** 0..1. Per il microfono è l'ampiezza normalizzata. */
   velocity: number;
   /**
    * Millisecondi presi ALLA SORGENTE, non al momento del render.
@@ -38,7 +38,7 @@ export interface PlayedNoteEvent {
    * quella dell'esecuzione dell'utente.
    */
   timestamp: number;
-  /** 1 per il MIDI (e' un dato esatto), 0..1 per il riconoscimento audio. */
+  /** 1 per il MIDI (è un dato esatto), 0..1 per il riconoscimento audio. */
   confidence: number;
   source: InputSourceId;
   /** Presente solo per la tastiera a schermo, che sa quale mano sta usando. */
@@ -74,11 +74,11 @@ export function inputStatusMessageIt(status: InputStatus, source: InputSourceId)
 
   switch (status.state) {
     case 'idle':
-      return `${nome} non e' ancora attiva.`;
+      return `${nome} non è ancora attiva.`;
     case 'starting':
       return `Sto collegando ${nomeMinuscolo}...`;
     case 'ready':
-      return status.deviceName ? `Collegato: ${status.deviceName}` : `${nome} e' pronta.`;
+      return status.deviceName ? `Collegato: ${status.deviceName}` : `${nome} è pronta.`;
     case 'denied':
       return source === 'microphone'
         ? 'Per ascoltarti serve il permesso di usare il microfono. Puoi darlo dalle impostazioni, oppure suonare sulla tastiera a schermo.'
@@ -86,13 +86,13 @@ export function inputStatusMessageIt(status: InputStatus, source: InputSourceId)
     case 'unavailable':
       switch (status.reason) {
         case 'native-module-missing':
-          return `${nome} non e' disponibile in questa versione dell'app. Puoi suonare sulla tastiera a schermo.`;
+          return `${nome} non è disponibile in questa versione dell'app. Puoi suonare sulla tastiera a schermo.`;
         case 'no-device':
           return 'Non trovo nessuna tastiera collegata. Collegala via USB o Bluetooth e riprova.';
         case 'insecure-context':
           return 'Questa funzione richiede una connessione sicura (https).';
         case 'platform-unsupported':
-          return `${nome} non e' supportata su questo dispositivo. Puoi suonare sulla tastiera a schermo.`;
+          return `${nome} non è supportata su questo dispositivo. Puoi suonare sulla tastiera a schermo.`;
       }
     case 'error':
       return `Qualcosa non ha funzionato con ${nomeMinuscolo}. Puoi continuare con la tastiera a schermo.`;

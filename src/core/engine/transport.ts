@@ -6,16 +6,16 @@ import type { ClockPort } from '../ports/clock';
  * Regola non negoziabile: la posizione NON viene mai accumulata
  * (`pos += dt`). Ogni accumulo, con i timer di JavaScript, produce una
  * deriva di decine di millisecondi al minuto: dopo un ritornello le note
- * a schermo non corrispondono piu' a quelle attese e il giudizio sul
+ * a schermo non corrispondono più a quelle attese e il giudizio sul
  * ritmo diventa privo di senso.
  *
- * Qui la posizione e' sempre ricalcolata da un ancoraggio:
+ * Qui la posizione è sempre ricalcolata da un ancoraggio:
  *
- *     posizione = ancoraggio + (adesso - istanteAncoraggio) * velocita'
+ *     posizione = ancoraggio + (adesso - istanteAncoraggio) * velocità
  *
  * L'ancoraggio si sposta solo quando cambia qualcosa (play, pausa, seek,
- * cambio di velocita', giro di loop). Il trasporto e' "a lettura": non ha
- * timer propri, e' chi disegna il frame a chiedere che ora e'.
+ * cambio di velocità, giro di loop). Il trasporto è "a lettura": non ha
+ * timer propri, è chi disegna il frame a chiedere che ora è.
  */
 
 export type TransportState = 'idle' | 'playing' | 'paused' | 'ended';
@@ -56,7 +56,7 @@ export class Transport {
     this.anchorPosition = this.minPosition;
   }
 
-  /** Inizio della corsa: negativo solo se c'e' un conto alla rovescia. */
+  /** Inizio della corsa: negativo solo se c'è un conto alla rovescia. */
   private get minPosition(): number {
     return this.countInMsValue > 0 ? -this.countInMsValue : 0;
   }
@@ -66,7 +66,7 @@ export class Transport {
   get rate(): number { return this.rateValue; }
   get durationMs(): number { return this.durationMsValue; }
   get loop(): LoopRange | null { return this.loopValue; }
-  /** Quante volte il loop e' ripartito da capo. */
+  /** Quante volte il loop è ripartito da capo. */
   get loopCount(): number { return this.loopCountValue; }
 
   /**
@@ -82,7 +82,7 @@ export class Transport {
       const { startMs, endMs } = this.loopValue;
       const length = endMs - startMs;
       if (length > 0 && raw >= endMs) {
-        // Il giro di loop e' un evento: ri-ancora invece di lasciare che
+        // Il giro di loop è un evento: ri-ancora invece di lasciare che
         // la posizione cresca all'infinito.
         const overshoot = raw - endMs;
         this.loopCountValue += Math.floor(overshoot / length) + 1;
@@ -104,8 +104,8 @@ export class Transport {
   /**
    * Posizione del brano corrispondente a un istante reale passato.
    *
-   * Serve per gli eventi di ingresso: il timestamp e' quello in cui il
-   * tasto e' stato premuto, non quello in cui l'evento arriva a noi.
+   * Serve per gli eventi di ingresso: il timestamp è quello in cui il
+   * tasto è stato premuto, non quello in cui l'evento arriva a noi.
    * Usare l'istante di arrivo significherebbe misurare la latenza del
    * runtime JavaScript e addebitarla all'utente.
    */
@@ -144,9 +144,9 @@ export class Transport {
   }
 
   /**
-   * Cambia velocita' senza far saltare la posizione: si ancora prima al
+   * Cambia velocità senza far saltare la posizione: si ancora prima al
    * punto attuale, poi si cambia il fattore. Facendo il contrario, ogni
-   * cambio di velocita' sposterebbe il brano di qualche decimo.
+   * cambio di velocità sposterebbe il brano di qualche decimo.
    */
   setRate(rate: number): void {
     const next = clampRate(rate);

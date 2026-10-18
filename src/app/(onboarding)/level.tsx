@@ -6,8 +6,8 @@ import { OnboardingStep, Option } from '../../features/onboarding/OnboardingStep
 const LIVELLI: Array<{ key: SkillLevel; title: string; subtitle: string }> = [
   { key: 'never_played', title: 'Non ho mai suonato', subtitle: 'Partiamo dalle cinque dita sulla posizione di DO.' },
   { key: 'beginner', title: 'Sono principiante', subtitle: 'Conosci le note, ti manca scioltezza.' },
-  { key: 'plays_already', title: 'So gia suonare', subtitle: 'Due mani insieme e accordi non ti spaventano.' },
-  { key: 'advanced', title: 'Sono avanzato', subtitle: 'Cerchi arrangiamenti fedeli e velocita piena.' },
+  { key: 'plays_already', title: 'So già suonare', subtitle: 'Due mani insieme e accordi non ti spaventano.' },
+  { key: 'advanced', title: 'Sono avanzato', subtitle: 'Cerchi arrangiamenti fedeli e velocità piena.' },
 ];
 
 export default function LevelStep() {

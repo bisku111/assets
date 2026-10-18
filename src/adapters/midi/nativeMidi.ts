@@ -3,7 +3,7 @@ import type { InputStatus, NoteInputPort, PlayedNoteEvent, Unsubscribe } from '.
 /**
  * Ingresso MIDI su iOS e Android.
  *
- * STATO: il modulo nativo `piano-io` non e' ancora compilato, quindi
+ * STATO: il modulo nativo `piano-io` non è ancora compilato, quindi
  * questo adapter DICHIARA di non essere disponibile. Non finge, non
  * restituisce note inventate, non resta in "collegamento..." per sempre.
  * La UI mostra il messaggio e propone la tastiera a schermo.
@@ -13,8 +13,8 @@ import type { InputStatus, NoteInputPort, PlayedNoteEvent, Unsubscribe } from '.
  *   Android  android.media.midi, MidiManager (USB e BLE)
  * Il modulo deve esporre `listDevices()` e `onMidiMessage(bytes, timestamp)`
  * con i timestamp presi nel callback nativo. A quel punto qui cambia solo
- * il corpo di `start()`: parser, traduttore e resto del motore sono gia'
- * quelli definitivi e gia' testati.
+ * il corpo di `start()`: parser, traduttore e resto del motore sono già
+ * quelli definitivi e già testati.
  */
 
 interface NativeMidiModule {
@@ -27,7 +27,7 @@ interface NativeMidiModule {
   stop(): Promise<void>;
 }
 
-/** Sara' popolata dal modulo nativo quando esistera'. */
+/** Sarà popolata dal modulo nativo quando esistera'. */
 export function resolveNativeMidiModule(): NativeMidiModule | null {
   return null;
 }
@@ -47,7 +47,7 @@ export class NativeMidiInput implements NoteInputPort {
         state: 'unavailable',
         reason: 'native-module-missing',
         detail:
-          "Il modulo nativo MIDI non e' incluso in questa build. Serve un development build con il modulo piano-io.",
+          "Il modulo nativo MIDI non è incluso in questa build. Serve un development build con il modulo piano-io.",
       };
       return this.status;
     }

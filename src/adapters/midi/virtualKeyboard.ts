@@ -5,10 +5,10 @@ import type { Hand } from '../../core/song/types';
 /**
  * La tastiera a schermo come sorgente di ingresso vera e propria.
  *
- * Non e' un ripiego cosmetico: implementa la stessa porta di MIDI e
+ * Non è un ripiego cosmetico: implementa la stessa porta di MIDI e
  * microfono, quindi l'intera esperienza (tutorial, feedback, punteggio,
- * progressi) e' completa e utilizzabile su qualsiasi telefono, anche
- * senza pianoforte collegato. E' cio' che rende l'MVP provabile davvero
+ * progressi) è completa e utilizzabile su qualsiasi telefono, anche
+ * senza pianoforte collegato. È cio' che rende l'MVP provabile davvero
  * mentre il modulo nativo audio/MIDI viene compilato.
  */
 export class VirtualKeyboardInput implements NoteInputPort {

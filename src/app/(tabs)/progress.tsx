@@ -15,9 +15,9 @@ import { colors, scoreColor, spacing } from '../../ui/theme';
 /**
  * Progressi.
  *
- * Mostra i numeri che l'allievo puo' usare: non "quanto hai giocato" ma
+ * Mostra i numeri che l'allievo può usare: non "quanto hai giocato" ma
  * "quanto sei migliorato e dove sbagli". La tendenza ritmica, in
- * particolare, e' l'informazione che un principiante non ha modo di
+ * particolare, è l'informazione che un principiante non ha modo di
  * ricavare da solo.
  */
 export default function Progress() {
@@ -39,8 +39,8 @@ export default function Progress() {
       migliore: Math.max(...sessions.map((s) => s.score)),
       giuste,
       errate,
-      // Media della precisione ritmica: dice se il problema e' il tempo
-      // o le note, che e' la domanda che l'allievo si pone davvero.
+      // Media della precisione ritmica: dice se il problema è il tempo
+      // o le note, che è la domanda che l'allievo si pone davvero.
       tendenza: Math.round(sessions.reduce((n, s) => n + s.timingPct, 0) / sessions.length),
       minuti: Math.round(sessions.reduce((n, s) => n + s.durationMs, 0) / 60_000),
     };

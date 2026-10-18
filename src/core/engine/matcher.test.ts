@@ -45,7 +45,7 @@ describe('confronto delle note', () => {
     const matcher = new NoteMatcher(MELODIA, { toleranceMs: 200 });
     expect(matcher.update(500)).toHaveLength(1);
     expect(matcher.snapshot().missed).toBe(1);
-    // Una nota gia' persa non si conta due volte.
+    // Una nota già persa non si conta due volte.
     expect(matcher.update(700)).toHaveLength(0);
     expect(matcher.snapshot().missed).toBe(1);
   });

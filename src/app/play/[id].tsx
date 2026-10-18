@@ -25,7 +25,7 @@ import { colors, handColor, radius, spacing } from '../../ui/theme';
  *
  * Tre fasce verticali: comandi in alto (piccoli), note in arrivo al
  * centro (tutto lo spazio restante), tastiera in basso, dove stanno le
- * mani. L'ordine non e' estetico: si guarda al centro e si suona in
+ * mani. L'ordine non è estetico: si guarda al centro e si suona in
  * basso, quindi i comandi non devono mai stare fra i due.
  */
 export default function Play() {
@@ -46,7 +46,7 @@ export default function Play() {
         <View style={{ padding: spacing.lg }}>
           <Text variant="title">Brano non disponibile</Text>
           <Text tone="muted" style={{ marginTop: spacing.sm }}>
-            Le note di questo brano non sono accessibili. Se e' un brano premium,
+            Le note di questo brano non sono accessibili. Se è un brano premium,
             serve un abbonamento attivo.
           </Text>
           <Button label="Torna indietro" onPress={() => router.back()} style={{ marginTop: spacing.lg }} />
@@ -77,9 +77,9 @@ interface PlaySessionProps {
 }
 
 /**
- * Tiene le scelte dell'utente (velocita', sezione, mani) e ricrea la
+ * Tiene le scelte dell'utente (velocità, sezione, mani) e ricrea la
  * sessione quando cambiano. Sono parametri del motore, non valori
- * modificabili a caldo: cambiarli a meta' esercizio falserebbe il voto.
+ * modificabili a caldo: cambiarli a metà esercizio falserebbe il voto.
  */
 function PlaySession({ song, arrangement, mode, initialRatePct, initialSectionId, onExit }: PlaySessionProps) {
   const [ratePct, setRatePct] = useState(initialRatePct);
@@ -93,7 +93,7 @@ function PlaySession({ song, arrangement, mode, initialRatePct, initialSectionId
   return (
     <PlayStage
       // La chiave forza una sessione nuova e pulita ad ogni cambio di
-      // parametro: piu' sicuro che tentare di riconfigurare il motore.
+      // parametro: più sicuro che tentare di riconfigurare il motore.
       key={`${arrangement.id}|${sectionId}|${ratePct}|${maniAttive.join('')}|${loop}`}
       song={song}
       arrangement={arrangement}
@@ -151,8 +151,8 @@ function PlayStage({
    */
   const [altezzaCorsia, setAltezzaCorsia] = useState(0);
 
-  // Estensione mostrata: quella del brano, allargata di poco perche' una
-  // nota incollata al bordo e' difficile da leggere.
+  // Estensione mostrata: quella del brano, allargata di poco perché una
+  // nota incollata al bordo è difficile da leggere.
   const estensione = useMemo(() => {
     const range = midiRange(arrangement.notes) ?? { min: 60, max: 72 };
     return { from: Math.max(21, range.min - 2), to: Math.min(108, range.max + 2) };
@@ -230,7 +230,7 @@ function PlayStage({
         <ProgressBar value={view.frame.progress} height={3} accessibilityLabel="Avanzamento del brano" />
       </View>
 
-      {/* ---- Velocita', mani, loop ---- */}
+      {/* ---- Velocità, mani, loop ---- */}
       <View style={styles.regolazioni}>
         <Comando label="− lento" onPress={() => onSetRate(previousRate(ratePct))} />
         <Comando label="+ veloce" onPress={() => onSetRate(nextRate(ratePct))} />
@@ -267,7 +267,7 @@ function PlayStage({
       <View style={styles.feedback}>
         {/*
           Le correzioni hanno la precedenza sull'invito ad attendere: in
-          modalita' IMPARA il brano resta fermo, e se l'invito coprisse il
+          modalità IMPARA il brano resta fermo, e se l'invito coprisse il
           messaggio l'allievo vedrebbe "suona la nota indicata" senza mai
           sapere quale nota ha sbagliato.
         */}

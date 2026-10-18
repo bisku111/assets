@@ -9,12 +9,12 @@ import type { Hand, SongSection } from '../song/types';
 /**
  * Il maestro.
  *
- * Questo modulo e' il motivo per cui l'app non e' "una schermata che
+ * Questo modulo è il motivo per cui l'app non è "una schermata che
  * mostra le note". Prende il risultato di un tentativo e decide COSA
  * FARE DOPO, come farebbe un insegnante: rallentare, ripetere solo il
- * ritornello, isolare la sinistra, o dire che si puo' salire di velocita'.
+ * ritornello, isolare la sinistra, o dire che si può salire di velocità.
  *
- * E' TypeScript puro e deterministico: nessun modello, nessuna rete.
+ * È TypeScript puro e deterministico: nessun modello, nessuna rete.
  * Una decisione didattica sbagliata deve essere riproducibile in un test,
  * non dipendere da cosa risponde oggi un servizio esterno.
  */
@@ -31,9 +31,9 @@ export type CoachAction =
 export type CoachTone = 'celebrate' | 'encourage' | 'correct' | 'neutral';
 
 export interface CoachAdvice {
-  /** Una frase breve: e' quella che l'utente legge per prima. */
+  /** Una frase breve: è quella che l'utente legge per prima. */
   headline: string;
-  /** Il perche', in una riga. */
+  /** Il perché, in una riga. */
   detail: string;
   tone: CoachTone;
   /** Cosa proporre con il pulsante principale. */
@@ -60,14 +60,14 @@ export function coachAdvice(context: CoachContext): CoachAdvice {
   const nome = section ? section.name.toLowerCase() : 'questa parte';
   const errori = breakdown.notesWrong + breakdown.notesMissed;
 
-  // ---- 1. Una mano e' molto piu' indietro dell'altra ------------------
-  // Ha la precedenza su tutto: rallentare due mani che vanno a velocita'
+  // ---- 1. Una mano è molto più indietro dell'altra ------------------
+  // Ha la precedenza su tutto: rallentare due mani che vanno a velocità
   // diverse non risolve niente, isolarle si'.
   const debole = hands.length === 2 ? weakerHand(context.handStats ?? {}) : null;
   if (debole && breakdown.accuracyPct < 85) {
     const label = debole === 'left' ? 'sinistra' : 'destra';
     return {
-      headline: `La mano ${label} e' rimasta indietro.`,
+      headline: `La mano ${label} è rimasta indietro.`,
       detail: `Proviamo ${nome} con la sola mano ${label}: quando va da sola, le due insieme vengono molto prima.`,
       tone: 'correct',
       action: { type: 'isolate-hand', hand: debole },
@@ -78,22 +78,22 @@ export function coachAdvice(context: CoachContext): CoachAdvice {
     };
   }
 
-  // ---- 2. Troppo difficile cosi': si rallenta -------------------------
+  // ---- 2. Troppo difficile così: si rallenta -------------------------
   if (breakdown.score < STRUGGLE_SCORE) {
     const piuLento = previousRate(ratePct);
     if (piuLento < ratePct) {
       return {
-        headline: `${capitalize(nome)} e' ancora difficile.`,
-        detail: `Hai sbagliato ${errori} ${errori === 1 ? 'nota' : 'note'}. Proviamo a rallentare al ${piuLento}%: piu' lento adesso significa piu' veloce fra dieci minuti.`,
+        headline: `${capitalize(nome)} è ancora difficile.`,
+        detail: `Hai sbagliato ${errori} ${errori === 1 ? 'nota' : 'note'}. Proviamo a rallentare al ${piuLento}%: più lento adesso significa più veloce fra dieci minuti.`,
         tone: 'encourage',
         action: { type: 'decrease-rate', ratePct: piuLento },
         alternatives: [{ type: 'repeat-section', sectionId: section?.id ?? null }],
       };
     }
-    // Gia' alla velocita' minima: non resta che ripetere.
+    // Già alla velocità minima: non resta che ripetere.
     return {
       headline: 'Andiamo con calma.',
-      detail: `Siamo gia' alla velocita' piu' bassa. Ripetiamo ${nome} ancora una volta: guarda le dita indicate a schermo.`,
+      detail: `Siamo già alla velocità più bassa. Ripetiamo ${nome} ancora una volta: guarda le dita indicate a schermo.`,
       tone: 'encourage',
       action: { type: 'repeat-section', sectionId: section?.id ?? null },
       alternatives: hands.length === 2 ? [{ type: 'isolate-hand', hand: 'right' }] : [{ type: 'next-section' }],
@@ -113,7 +113,7 @@ export function coachAdvice(context: CoachContext): CoachAdvice {
     };
   }
 
-  // ---- 4. Superato: si sale di velocita' o si passa avanti ------------
+  // ---- 4. Superato: si sale di velocità o si passa avanti ------------
   if (breakdown.score >= PASS_SCORE) {
     if (!isTopRate(ratePct)) {
       const piuVeloce = nextRate(ratePct);
@@ -128,8 +128,8 @@ export function coachAdvice(context: CoachContext): CoachAdvice {
 
     if (hands.length === 1) {
       return {
-        headline: 'Questa mano e a posto.',
-        detail: 'A velocita piena e senza errori. Adesso proviamo con tutte e due le mani.',
+        headline: 'Questa mano è a posto.',
+        detail: 'A velocità piena e senza errori. Adesso proviamo con tutte e due le mani.',
         tone: 'celebrate',
         action: { type: 'both-hands' },
         alternatives: [{ type: 'next-section' }],
@@ -139,7 +139,7 @@ export function coachAdvice(context: CoachContext): CoachAdvice {
     if (isLastSection) {
       return {
         headline: 'Brano completato.',
-        detail: `${breakdown.score}/100 a velocita' piena. Hai finito tutte le sezioni.`,
+        detail: `${breakdown.score}/100 a velocità piena. Hai finito tutte le sezioni.`,
         tone: 'celebrate',
         action: { type: 'finish' },
         alternatives: [{ type: 'repeat-section', sectionId: section?.id ?? null }],
@@ -148,7 +148,7 @@ export function coachAdvice(context: CoachContext): CoachAdvice {
 
     return {
       headline: 'Sezione superata.',
-      detail: `${breakdown.score}/100 a velocita' piena. Passiamo alla parte successiva.`,
+      detail: `${breakdown.score}/100 a velocità piena. Passiamo alla parte successiva.`,
       tone: 'celebrate',
       action: { type: 'next-section' },
       alternatives: [{ type: 'repeat-section', sectionId: section?.id ?? null }],
@@ -163,7 +163,7 @@ export function coachAdvice(context: CoachContext): CoachAdvice {
 
   return {
     headline: attempts >= 3 ? 'Ci sei quasi.' : 'Buono.',
-    detail: `${dettaglio} Ancora una ripetizione di ${nome} e ci siamo: serve ${PASS_SCORE} per salire di velocita', sei a ${breakdown.score}.`,
+    detail: `${dettaglio} Ancora una ripetizione di ${nome} e ci siamo: serve ${PASS_SCORE} per salire di velocità, sei a ${breakdown.score}.`,
     tone: 'neutral',
     action: { type: 'repeat-section', sectionId: section?.id ?? null },
     alternatives: [{ type: 'decrease-rate', ratePct: previousRate(ratePct) }],
@@ -187,13 +187,13 @@ export function liveFeedbackIt(
       // Il formato richiesto: "Prevista: MI — Suonata: RE".
       return `Prevista: ${noteNameIt(outcome.expectedMidi, false)} — Suonata: ${noteNameIt(outcome.playedMidi, false)}`;
     case 'extra':
-      return `Nota in piu': ${noteNameIt(outcome.playedMidi, false)}`;
+      return `Nota in più: ${noteNameIt(outcome.playedMidi, false)}`;
   }
 }
 
-/** Frase di apertura della sessione, in base a come e' andata l'ultima volta. */
+/** Frase di apertura della sessione, in base a come è andata l'ultima volta. */
 export function welcomeBackIt(lastScore: number | null, streakDays: number): string {
-  if (streakDays >= 7) return `${streakDays} giorni di fila. Continuiamo cosi'.`;
+  if (streakDays >= 7) return `${streakDays} giorni di fila. Continuiamo così.`;
   if (lastScore === null) return 'Cominciamo. Metti le mani sulla tastiera.';
   if (lastScore >= PASS_SCORE) return "L'ultima volta era andata bene. Riprendiamo da li'.";
   return 'Riprendiamo da dove eravamo rimasti, con calma.';

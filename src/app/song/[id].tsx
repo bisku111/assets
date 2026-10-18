@@ -21,8 +21,8 @@ import { colors, radius, spacing } from '../../ui/theme';
 /**
  * Scheda del brano: si sceglie COSA studiare prima di iniziare.
  *
- * Difficolta', sezione e modalita' si decidono qui e non dentro il
- * tutorial: mentre si suona, ogni menu' in piu' e' una mano tolta dalla
+ * Difficoltà, sezione e modalità si decidono qui e non dentro il
+ * tutorial: mentre si suona, ogni menu' in più è una mano tolta dalla
  * tastiera.
  */
 export default function SongDetail() {
@@ -44,7 +44,7 @@ export default function SongDetail() {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, padding: spacing.lg }}>
         <Text variant="title">Brano non disponibile</Text>
         <Text tone="muted" style={{ marginTop: spacing.sm }}>
-          Questo brano non e' piu' in catalogo, oppure non e' ancora stato scaricato.
+          Questo brano non è più in catalogo, oppure non è ancora stato scaricato.
         </Text>
         <Button label="Torna indietro" onPress={() => router.back()} style={{ marginTop: spacing.lg }} />
       </SafeAreaView>
@@ -108,7 +108,7 @@ export default function SongDetail() {
             </Card>
           ) : null}
 
-          {/* ---- Difficolta' ---- */}
+          {/* ---- Difficoltà ---- */}
           <Sezione titolo="Livello">
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
               {difficolta.map((d) => (
@@ -142,7 +142,7 @@ export default function SongDetail() {
             </Sezione>
           ) : null}
 
-          {/* ---- Modalita' ---- */}
+          {/* ---- Modalità ---- */}
           <Sezione titolo="Come vuoi suonare">
             {(['learn', 'practice', 'play', 'performance'] as PracticeMode[]).map((m) => (
               <Card
@@ -165,7 +165,7 @@ export default function SongDetail() {
             label="Inizia"
             onPress={inizia}
             disabled={!arrangement}
-            hint={`${sezione ? SECTION_LABEL_IT[arrangement?.sections.find((s) => s.id === sezione)?.kind ?? 'verse'] : 'Tutto il brano'} · ${velocita}% di velocita`}
+            hint={`${sezione ? SECTION_LABEL_IT[arrangement?.sections.find((s) => s.id === sezione)?.kind ?? 'verse'] : 'Tutto il brano'} · ${velocita}% di velocità`}
           />
 
           <Text variant="caption" tone="faint" center style={{ marginTop: spacing.lg }}>

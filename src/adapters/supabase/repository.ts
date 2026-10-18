@@ -12,7 +12,7 @@ import { defaultProfile } from '../storage/localRepository';
  *
  * Regola di questo file: nessun errore tecnico raggiunge la UI. Ogni
  * fallimento viene tradotto in una frase che l'utente possa capire e su
- * cui possa agire. "PGRST301" non e' un messaggio, e' un dispetto.
+ * cui possa agire. "PGRST301" non è un messaggio, è un dispetto.
  */
 
 function tradurreErrore(error: { message?: string; code?: string } | null, cosa: string): UserFacingError {
@@ -152,7 +152,7 @@ interface SongRow {
   license_status: string; license_owner: string | null; license_type: string | null;
   territory: string; license_start_date: string | null; license_end_date: string | null;
   // PostgREST restituisce la relazione come array o come oggetto a
-  // seconda di come e' dichiarata la chiave esterna: si gestiscono entrambi.
+  // seconda di come è dichiarata la chiave esterna: si gestiscono entrambi.
   artists?: { id: string; name: string } | Array<{ id: string; name: string }> | null;
 }
 

@@ -6,9 +6,9 @@ import type { SongProgressRecord } from '../ports/repository';
  * Lo sblocco non serve a trattenere l'utente: serve a impedirgli di
  * iniziare dalla scala con passaggio del pollice senza aver mai tenuto
  * cinque dita ferme. Chi comincia dalla lezione sbagliata non impara
- * piu' lentamente: si convince di non essere portato e smette.
+ * più lentamente: si convince di non essere portato e smette.
  *
- * La soglia e' bassa di proposito (non serve la perfezione per andare
+ * La soglia è bassa di proposito (non serve la perfezione per andare
  * avanti) e la lezione successiva resta visibile anche da bloccata, con
  * scritto che cosa manca.
  */
@@ -23,7 +23,7 @@ export interface LessonState {
   unlocked: boolean;
   completionPct: number;
   bestScore: number;
-  /** Prima lezione non ancora completata: e' quella da proporre. */
+  /** Prima lezione non ancora completata: è quella da proporre. */
   current: boolean;
 }
 
@@ -34,7 +34,7 @@ export function buildLessonPath(
   const avanzamento = (songId: string) => progress.find((p) => p.songId === songId) ?? null;
 
   const stati: LessonState[] = [];
-  let precedenteSuperata = true; // la prima e' sempre aperta
+  let precedenteSuperata = true; // la prima è sempre aperta
   let correnteAssegnata = false;
 
   lessonSongIds.forEach((songId, index) => {

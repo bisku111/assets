@@ -15,7 +15,7 @@ import { readJson, writeJson, type KeyValueStore } from './keyValue';
  *  - utente che non vuole creare un account per provare l'app;
  *  - nessuna rete.
  *
- * Il catalogo e' quello dimostrativo incluso nel bundle, quindi l'app e'
+ * Il catalogo è quello dimostrativo incluso nel bundle, quindi l'app è
  * completa e utilizzabile appena installata, anche in aereo.
  */
 
@@ -104,7 +104,7 @@ export class LocalProgress implements ProgressPort {
 
   async saveSession(session: PracticeSessionRecord): Promise<void> {
     const all = await readJson<PracticeSessionRecord[]>(this.store, KEY_SESSIONS(session.userId), []);
-    // Le piu' recenti in testa: e' l'ordine in cui vengono sempre lette.
+    // Le più recenti in testa: è l'ordine in cui vengono sempre lette.
     all.unshift(session);
     await writeJson(this.store, KEY_SESSIONS(session.userId), all.slice(0, MAX_STORED_SESSIONS));
   }

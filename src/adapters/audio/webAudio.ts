@@ -5,9 +5,9 @@ import type { InputStatus, NoteInputPort, PlayedNoteEvent, Unsubscribe } from '.
  * Microfono reale tramite Web Audio API.
  *
  * L'audio non lascia MAI il dispositivo: i campioni entrano nel
- * tracciatore, che produce eventi di nota, e vengono scartati. Non c'e'
- * registrazione, non c'e' invio, non c'e' buffer conservato. E' una
- * scelta di privacy, ed e' anche il motivo per cui la funzione puo'
+ * tracciatore, che produce eventi di nota, e vengono scartati. Non c'è
+ * registrazione, non c'è invio, non c'è buffer conservato. È una
+ * scelta di privacy, ed è anche il motivo per cui la funzione può
  * essere offerta chiedendo solo il permesso di accesso al microfono.
  */
 
@@ -39,7 +39,7 @@ const BLOCK_SIZE = 2048;
 
 export class WebAudioMicrophoneInput implements NoteInputPort {
   readonly id = 'microphone' as const;
-  /** YIN e' monofonico: gli accordi al microfono non sono affidabili. */
+  /** YIN è monofonico: gli accordi al microfono non sono affidabili. */
   readonly polyphonic = false;
 
   private readonly listeners = new Set<(event: PlayedNoteEvent) => void>();
@@ -98,8 +98,8 @@ export class WebAudioMicrophoneInput implements NoteInputPort {
     const processor = context.createScriptProcessor(BLOCK_SIZE, 1, 1);
     processor.onaudioprocess = (event) => {
       const samples = event.inputBuffer.getChannelData(0);
-      // Il blocco e' gia' stato catturato quando arriva qui: il suo
-      // istante e' "adesso meno la durata del blocco".
+      // Il blocco è già stato catturato quando arriva qui: il suo
+      // istante è "adesso meno la durata del blocco".
       const capturedAt = this.deps!.now() - (BLOCK_SIZE / context.sampleRate) * 1000;
       for (const played of this.tracker!.process(samples, capturedAt)) this.emit(played);
     };
@@ -122,8 +122,8 @@ export class WebAudioMicrophoneInput implements NoteInputPort {
       for (const event of this.tracker.flush(this.deps?.now() ?? 0)) this.emit(event);
       this.tracker = null;
     }
-    // Fermare le tracce spegne l'indicatore di microfono attivo: e' cio'
-    // che dimostra all'utente che non lo stiamo piu' ascoltando.
+    // Fermare le tracce spegne l'indicatore di microfono attivo: è cio'
+    // che dimostra all'utente che non lo stiamo più ascoltando.
     this.stream?.getTracks().forEach((track) => track.stop());
     this.stream = null;
     void this.context?.close();

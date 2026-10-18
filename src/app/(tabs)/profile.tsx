@@ -18,7 +18,7 @@ const LIVELLI: Array<{ key: SkillLevel; label: string }> = [
 
 const SORGENTI: Array<{ key: InputPreference; label: string; nota: string }> = [
   { key: 'virtual-keyboard', label: 'Tastiera a schermo', nota: 'Funziona sempre, su qualsiasi dispositivo.' },
-  { key: 'midi', label: 'Tastiera MIDI', nota: 'La piu precisa. Su web funziona con Chrome ed Edge.' },
+  { key: 'midi', label: 'Tastiera MIDI', nota: 'La più precisa. Su web funziona con Chrome ed Edge.' },
   { key: 'microphone', label: 'Microfono', nota: 'Ascolta il pianoforte acustico. Una nota per volta: gli accordi non sono affidabili.' },
 ];
 
@@ -44,7 +44,7 @@ export default function Profile() {
             <Text variant="label" tone="warning">Nessuna sincronizzazione</Text>
             <Text variant="caption" tone="muted" style={{ marginTop: spacing.xs }}>
               I tuoi progressi sono salvati solo qui. Se disinstalli l'app o cambi
-              telefono, vanno persi. Lo diciamo perche' succede, non per allarmare.
+              telefono, vanno persi. Lo diciamo perché succede, non per allarmare.
             </Text>
           </Card>
         ) : null}
@@ -73,8 +73,8 @@ export default function Profile() {
               key={s.key}
               onPress={() => void updateProfile({
                 preferredInput: s.key,
-                // Si riparte dalla latenza tipica della sorgente: e' una
-                // stima onesta finche' l'utente non calibra davvero.
+                // Si riparte dalla latenza tipica della sorgente: è una
+                // stima onesta finché l'utente non calibra davvero.
                 inputLatencyMs: DEFAULT_LATENCY_MS[s.key],
               })}
               accessibilityLabel={s.label}
@@ -91,7 +91,7 @@ export default function Profile() {
             style={{ marginTop: spacing.sm, borderColor: colors.primary }}>
             <Text variant="heading">Collega il pianoforte</Text>
             <Text variant="caption" tone="muted" style={{ marginTop: 2, lineHeight: 19 }}>
-              Verifica che l app veda il tuo strumento e prova qualche nota prima
+              Verifica che l'app veda il tuo strumento e prova qualche nota prima
               di iniziare una lezione.
             </Text>
           </Card>
@@ -101,7 +101,7 @@ export default function Profile() {
             <Text variant="heading">Calibra il ritardo</Text>
             <Text variant="caption" tone="muted" style={{ marginTop: 2, lineHeight: 19 }}>
               Compensazione in uso: {profile.inputLatencyMs} ms. Suoni a tempo ma
-              l app ti segna in ritardo? Serve questa: e il caso tipico di un
+              l'app ti segna in ritardo? Serve questa: è il caso tipico di un
               pianoforte collegato via Bluetooth.
             </Text>
           </Card>

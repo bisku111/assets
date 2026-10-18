@@ -2,7 +2,7 @@
  * Teoria musicale di base. TypeScript puro: nessuna dipendenza da React/RN.
  *
  * Convenzione MIDI standard: 60 = DO centrale (C4), A4 = 69 = 440 Hz.
- * L'intervallo utile di un pianoforte 88 tasti e' 21 (A0) .. 108 (C8).
+ * L'intervallo utile di un pianoforte 88 tasti è 21 (A0) .. 108 (C8).
  */
 
 export const MIDI_MIN = 21;
@@ -12,7 +12,7 @@ export const A4_MIDI = 69;
 export const A4_FREQUENCY_HZ = 440;
 
 /** Nomi anglosassoni, indicizzati per pitch class (0 = C). */
-const NAMES_EN = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
+const NAMES_EN = ['C', 'C#', 'D', 'D#', 'È', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
 
 /** Nomi italiani: quello che l'utente legge a schermo. */
 const NAMES_IT = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'] as const;
@@ -71,15 +71,15 @@ export function frequencyToMidiFloat(frequencyHz: number, a4Hz: number = A4_FREQ
 }
 
 export interface PitchReading {
-  /** Nota MIDI piu' vicina. */
+  /** Nota MIDI più vicina. */
   midi: number;
   /** Scarto rispetto alla nota temperata, in cent (-50..+50). */
   cents: number;
 }
 
 /**
- * Converte una frequenza nella nota piu' vicina, riportando anche
- * quanto e' stonata. `cents` serve al feedback ("sei calante") e a
+ * Converte una frequenza nella nota più vicina, riportando anche
+ * quanto è stonata. `cents` serve al feedback ("sei calante") e a
  * scartare letture ambigue provenienti dal microfono.
  */
 export function frequencyToPitch(frequencyHz: number, a4Hz: number = A4_FREQUENCY_HZ): PitchReading | null {

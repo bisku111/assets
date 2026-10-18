@@ -10,7 +10,7 @@ import type { MidiEvent } from './parser';
  * tastiera a schermo mostrerebbe le note spegnersi mentre il pianoforte
  * suona ancora, e l'allievo penserebbe di aver sbagliato.
  *
- * Il punteggio non ne risente comunque, perche' si valutano gli attacchi
+ * Il punteggio non ne risente comunque, perché si valutano gli attacchi
  * (vedi matcher.ts): questo serve alla rappresentazione a schermo.
  */
 export class MidiNoteTranslator {
@@ -28,7 +28,7 @@ export class MidiNoteTranslator {
           midi: event.midi,
           velocity: event.velocity,
           timestamp: event.timestamp,
-          confidence: 1, // il MIDI e' un dato esatto, non una stima
+          confidence: 1, // il MIDI è un dato esatto, non una stima
           source: 'midi',
         }];
       }

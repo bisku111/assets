@@ -31,7 +31,7 @@ export default function Catalog() {
     });
   }, [songs, query, difficolta, artista]);
 
-  // Artisti in attesa di licenza: si mostrano, ma e' chiaro che non
+  // Artisti in attesa di licenza: si mostrano, ma è chiaro che non
   // hanno brani. Nascondere la cosa genererebbe solo ricerche a vuoto.
   const inAttesa = artists.filter((a) => a.isPlaceholder);
 
@@ -96,7 +96,7 @@ export default function Catalog() {
             <Text variant="heading">In arrivo</Text>
             <Text variant="caption" tone="muted" style={{ marginTop: spacing.xs }}>
               Stiamo lavorando per portare qui il repertorio di questi artisti.
-              Finche' la licenza non c'e', non trovi nessun loro brano: preferiamo
+              Finché la licenza non c'è, non trovi nessun loro brano: preferiamo
               dirlo invece di far cercare a vuoto.
             </Text>
             <Text variant="caption" tone="faint" style={{ marginTop: spacing.sm }}>

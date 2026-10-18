@@ -26,8 +26,8 @@ const PREPARAZIONE = 4;
  *
  * Serve soprattutto a chi collega un pianoforte digitale via Bluetooth,
  * dove il ritardo arriva a un decimo di secondo: senza compensazione un
- * allievo preciso verrebbe giudicato sistematicamente in ritardo, ed e'
- * l'errore che fa perdere fiducia nell'app piu' di qualunque altro.
+ * allievo preciso verrebbe giudicato sistematicamente in ritardo, ed è
+ * l'errore che fa perdere fiducia nell'app più di qualunque altro.
  */
 export default function Calibrate() {
   const router = useRouter();
@@ -200,16 +200,16 @@ export default function Calibrate() {
 
             {/*
               Si dice che cosa comprende il numero. Il ritardo del tasto
-              non e' osservabile da solo: serve un riferimento, e l'unico
-              e' l'utente che suona a tempo. Quindi la misura include
-              anche la sua tendenza personale — ed e' giusto cosi', visto
-              che l'obiettivo e' che il giudizio coincida con quello che
+              non è osservabile da solo: serve un riferimento, e l'unico
+              è l'utente che suona a tempo. Quindi la misura include
+              anche la sua tendenza personale — ed è giusto così, visto
+              che l'obiettivo è che il giudizio coincida con quello che
               l'allievo sente.
             */}
             <Text variant="caption" tone="faint" style={{ marginTop: spacing.md, lineHeight: 18 }}>
               Questo valore comprende sia il ritardo tecnico del tuo strumento
-              sia la tua tendenza ad anticipare o ritardare. E quello che serve
-              perche il giudizio dell app corrisponda a come ti senti mentre
+              sia la tua tendenza ad anticipare o ritardare. È quello che serve
+              perché il giudizio dell'app corrisponda a come ti senti mentre
               suoni. Puoi correggerlo a mano quando vuoi.
             </Text>
           </Card>
@@ -235,9 +235,9 @@ export default function Calibrate() {
         La tastiera sta FUORI dall'area che scorre: durante la misura
         deve restare sotto il pollice. Dentro lo ScrollView finirebbe
         sotto la piega, e chi non ha lo strumento collegato dovrebbe
-        scorrere mentre il metronomo gia' va.
+        scorrere mentre il metronomo già va.
 
-        Sparisce quando lo strumento vero e' collegato e pronto: in quel
+        Sparisce quando lo strumento vero è collegato e pronto: in quel
         caso si batte sul pianoforte, e la tastiera a schermo toglierebbe
         soltanto spazio al risultato e ai pulsanti.
       */}
@@ -263,7 +263,7 @@ export default function Calibrate() {
 /** Cerchio che pulsa sul battito. */
 function Battito({ frame }: { frame: CalibrationFrame }) {
   const attivo = frame.phase === 'count-in' || frame.phase === 'measuring';
-  // Pulsa forte all'attacco e si sgonfia: e' l'attacco il riferimento,
+  // Pulsa forte all'attacco e si sgonfia: è l'attacco il riferimento,
   // non il centro del battito.
   const scala = attivo ? 1 + 0.35 * Math.max(0, 1 - frame.beatProgress * 3) : 1;
   const colore = frame.phase === 'measuring' ? colors.primary

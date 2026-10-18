@@ -5,15 +5,15 @@ import { calibrateLatency, type CalibrationResult, type CalibrationSample } from
  * Sessione di calibrazione: metronomo + raccolta dei colpi.
  *
  * COSA MISURA, detto chiaramente. Il ritardo fra il tasto premuto e
- * l'evento ricevuto non e' osservabile da solo: serve un riferimento, e
- * l'unico disponibile e' l'utente che suona a tempo. Quindi la misura
+ * l'evento ricevuto non è osservabile da solo: serve un riferimento, e
+ * l'unico disponibile è l'utente che suona a tempo. Quindi la misura
  * comprende DUE cose insieme:
  *   - il ritardo tecnico della catena (USB pochi ms, Bluetooth anche 100);
  *   - la tendenza personale di chi suona, che di norma anticipa di
  *     qualche decina di millisecondi.
  *
- * Non e' un difetto del metodo: e' esattamente cio' che serve, perche'
- * l'obiettivo e' che il giudizio dell'app coincida con quello che
+ * Non è un difetto del metodo: è esattamente cio' che serve, perché
+ * l'obiettivo è che il giudizio dell'app coincida con quello che
  * l'allievo sente. La schermata lo dice all'utente invece di spacciare
  * il numero per una misura puramente tecnica, e permette di correggerlo
  * a mano.
@@ -41,7 +41,7 @@ export interface CalibrationFrame {
   beatIndex: number;
   /** 0..1 dentro il battito corrente: alimenta l'animazione del pulsare. */
   beatProgress: number;
-  /** Colpi gia' registrati. */
+  /** Colpi già registrati. */
   collected: number;
   totalBeats: number;
 }
@@ -54,7 +54,7 @@ export class LatencyCalibrator {
 
   private startedAt: number | null = null;
   private readonly collected: CalibrationSample[] = [];
-  /** Battiti gia' usati: un colpo per battito, niente doppi conteggi. */
+  /** Battiti già usati: un colpo per battito, niente doppi conteggi. */
   private readonly usedBeats = new Set<number>();
 
   constructor(options: CalibrationOptions) {
@@ -109,9 +109,9 @@ export class LatencyCalibrator {
   }
 
   /**
-   * Registra un colpo, associandolo al battito piu' vicino.
+   * Registra un colpo, associandolo al battito più vicino.
    *
-   * L'associazione al piu' vicino, e non "al prossimo in ordine", evita
+   * L'associazione al più vicino, e non "al prossimo in ordine", evita
    * che un colpo saltato sfasi tutti quelli successivi: senza, un solo
    * errore dell'utente renderebbe inutile l'intera calibrazione.
    */

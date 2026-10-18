@@ -11,7 +11,7 @@ export interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
-  /** Riga piccola sotto l'etichetta: usata dal maestro per il "perche'". */
+  /** Riga piccola sotto l'etichetta: usata dal maestro per il "perché". */
   hint?: string;
   style?: ViewStyle;
   testID?: string;
@@ -35,7 +35,7 @@ export function Button({
         styles.base,
         VARIANT_STYLE[variant],
         fullWidth && styles.fullWidth,
-        // Il feedback al tocco e' immediato e leggero: su un pulsante che
+        // Il feedback al tocco è immediato e leggero: su un pulsante che
         // si preme mentre si suona, un'animazione lunga da' fastidio.
         pressed && !inattivo && styles.pressed,
         inattivo && styles.disabled,

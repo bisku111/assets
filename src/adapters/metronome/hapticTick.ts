@@ -4,10 +4,10 @@ import type { MetronomePort } from '../../core/ports/metronome';
 /**
  * Battito tattile su iOS e Android.
  *
- * Non c'e' un click udibile perche' il repository non contiene file
- * audio e nessuna API di Expo sintetizza un suono. La vibrazione e' un
+ * Non c'è un click udibile perché il repository non contiene file
+ * audio e nessuna API di Expo sintetizza un suono. La vibrazione è un
  * riferimento reale e sufficiente per la calibrazione; quando il modulo
- * nativo audio verra' aggiunto, qui si potra' sostituire con un click
+ * nativo audio verrà aggiunto, qui si potra' sostituire con un click
  * vero senza toccare nient'altro.
  */
 export class HapticMetronome implements MetronomePort {

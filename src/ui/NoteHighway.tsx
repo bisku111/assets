@@ -8,13 +8,13 @@ import { layout } from './PianoKeyboard';
 /**
  * Le note che scendono verso la tastiera.
  *
- * Posizionamento: l'asse X e' allineato ESATTAMENTE alla tastiera
+ * Posizionamento: l'asse X è allineato ESATTAMENTE alla tastiera
  * sottostante (stessa funzione `layout`), altrimenti una nota cadrebbe
  * accanto al tasto da premere e l'aiuto visivo diventerebbe un intralcio.
  *
- * L'asse Y e' il tempo: `lookAheadMs` di brano occupano tutta l'altezza.
+ * L'asse Y è il tempo: `lookAheadMs` di brano occupano tutta l'altezza.
  * Una nota attesa fra 2 secondi, con finestra di 3, sta a due terzi
- * dall'alto. Si ridisegna solo cio' che e' nella finestra, quindi il
+ * dall'alto. Si ridisegna solo cio' che è nella finestra, quindi il
  * costo non dipende dalla lunghezza del brano.
  */
 
@@ -41,7 +41,7 @@ export const NoteHighway = memo(function NoteHighway({
       {notes.map((state) => {
         const { note } = state;
         const delta = note.startMs - positionMs;
-        // Fuori finestra: non si disegna. E' cio' che tiene il costo
+        // Fuori finestra: non si disegna. È cio' che tiene il costo
         // proporzionale alle note visibili e non a quelle del brano.
         if (delta > lookAheadMs || note.startMs + note.durationMs < positionMs - 300) return null;
 
@@ -69,7 +69,7 @@ export const NoteHighway = memo(function NoteHighway({
                 left: `${leftPct}%`,
                 width: `${widthPct}%`,
                 // L'altezza rappresenta la durata: una nota lunga si vede
-                // lunga, ed e' cosi' che si impara a tenerla.
+                // lunga, ed è così che si impara a tenerla.
                 height: Math.max(10, durationPct * height),
                 top: topPct * height - Math.max(10, durationPct * height),
                 backgroundColor: colore,

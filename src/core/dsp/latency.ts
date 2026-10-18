@@ -5,8 +5,8 @@
  * l'evento arriva al motore passano da pochi millisecondi (MIDI via USB)
  * a oltre cento (MIDI Bluetooth, o microfono con buffer generosi). Senza
  * compensazione, un allievo perfettamente a tempo verrebbe giudicato
- * sistematicamente in ritardo: e' un errore che distrugge la fiducia
- * nell'app piu' di qualunque difetto grafico.
+ * sistematicamente in ritardo: è un errore che distrugge la fiducia
+ * nell'app più di qualunque difetto grafico.
  *
  * Procedura: l'utente suona una nota su ogni battito di un metronomo.
  * Si misura lo scarto e si prende la MEDIANA, non la media: basta un
@@ -17,7 +17,7 @@
 export interface CalibrationSample {
   /** Momento del battito atteso. */
   expectedMs: number;
-  /** Momento in cui l'evento e' stato registrato. */
+  /** Momento in cui l'evento è stato registrato. */
   actualMs: number;
 }
 
@@ -33,7 +33,7 @@ export interface CalibrationResult {
 
 /** Colpi oltre questo scarto sono errori, non latenza. */
 const OUTLIER_LIMIT_MS = 400;
-/** Sopra questa dispersione la calibrazione non e' attendibile. */
+/** Sopra questa dispersione la calibrazione non è attendibile. */
 const MAX_RELIABLE_SPREAD_MS = 60;
 const MIN_SAMPLES = 4;
 

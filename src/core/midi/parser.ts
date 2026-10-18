@@ -1,19 +1,19 @@
 /**
  * Interprete dei messaggi MIDI.
  *
- * Sembra banale ("tre byte per nota") e non lo e'. Le tastiere vere usano
+ * Sembra banale ("tre byte per nota") e non lo è. Le tastiere vere usano
  * tre convenzioni che, ignorate, producono note fantasma o note che
  * restano premute per sempre:
  *
  *  - RUNNING STATUS: dopo il primo messaggio, il byte di stato viene
- *    omesso finche' non cambia. Uno stream di scale arriva come una
+ *    omesso finché non cambia. Uno stream di scale arriva come una
  *    sequenza di sole coppie nota/velocity.
- *  - NOTE ON CON VELOCITY 0: quasi tutte le tastiere rilasciano cosi',
+ *  - NOTE ON CON VELOCITY 0: quasi tutte le tastiere rilasciano così,
  *    invece di mandare un vero Note Off. Chi non lo gestisce si ritrova
  *    tutti i tasti "premuti".
  *  - MESSAGGI REAL-TIME (0xF8..0xFF, clock e simili): possono comparire
- *    IN MEZZO a un altro messaggio e non devono ne' essere interpretati
- *    ne' azzerare il running status.
+ *    IN MEZZO a un altro messaggio e non devono né essere interpretati
+ *    né azzerare il running status.
  */
 
 export type MidiEvent =
@@ -51,7 +51,7 @@ export class MidiParser {
   private pending: number[] = [];
   private inSysex = false;
 
-  /** Interpreta un blocco di byte. Un messaggio puo' essere spezzato fra due chiamate. */
+  /** Interpreta un blocco di byte. Un messaggio può essere spezzato fra due chiamate. */
   parse(bytes: ArrayLike<number>, timestamp: number): MidiEvent[] {
     const events: MidiEvent[] = [];
 
@@ -114,7 +114,7 @@ export class MidiParser {
 
     switch (type) {
       case NOTE_ON:
-        // Velocity 0 = rilascio: e' il modo in cui la maggior parte delle
+        // Velocity 0 = rilascio: è il modo in cui la maggior parte delle
         // tastiere manda il Note Off.
         return d1 === 0
           ? { type: 'note-off', channel, midi: d0, timestamp }
@@ -125,7 +125,7 @@ export class MidiParser {
 
       case CONTROL_CHANGE:
         if (d0 === CC_SUSTAIN) {
-          // Convenzione MIDI: sotto 64 il pedale e' alzato.
+          // Convenzione MIDI: sotto 64 il pedale è alzato.
           return { type: 'sustain', channel, down: d1 >= 64, timestamp };
         }
         if (d0 === CC_ALL_NOTES_OFF) return { type: 'all-notes-off', channel, timestamp };

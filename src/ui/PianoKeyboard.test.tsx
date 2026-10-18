@@ -16,7 +16,7 @@ describe('layout della tastiera', () => {
   it('mette ogni nero subito dopo il bianco giusto', () => {
     const { blacks } = layout(60, 71);
     // DO#=61 dopo il primo bianco (DO), RE#=63 dopo il secondo (RE),
-    // FA#=66 dopo il quarto (FA), e cosi' via: e' il layout vero.
+    // FA#=66 dopo il quarto (FA), e così via: è il layout vero.
     expect(blacks.map((b) => [b.midi, b.afterWhiteIndex])).toEqual([
       [61, 0], [63, 1], [66, 3], [68, 4], [70, 5],
     ]);
@@ -60,7 +60,7 @@ describe('tastiera a schermo', () => {
     expect(screen.getByText('SOL')).toBeTruthy();
   });
 
-  it('non mostra i nomi quando non servono piu', () => {
+  it('non mostra i nomi quando non servono più', () => {
     render(<PianoKeyboard fromMidi={60} toMidi={71} />);
     expect(screen.queryByText('DO')).toBeNull();
   });

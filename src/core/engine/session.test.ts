@@ -102,7 +102,7 @@ describe('sessione di studio', () => {
     const { clock, session } = sessione();
     session.start();
     // Tolleranza in ESERCITATI: 220 ms. A 700 ms la prima nota (attesa a
-    // 0) e' persa, la seconda (a 1000) e' ancora giocabile.
+    // 0) è persa, la seconda (a 1000) è ancora giocabile.
     clock.advance(700);
     const frame = session.tick();
     expect(frame.notesJustMissed).toHaveLength(1);

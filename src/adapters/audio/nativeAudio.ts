@@ -3,14 +3,14 @@ import type { InputStatus, NoteInputPort, PlayedNoteEvent, Unsubscribe } from '.
 /**
  * Microfono su iOS e Android.
  *
- * STATO: come per il MIDI nativo, il modulo `piano-io` non e' ancora
- * compilato. Ne' expo-audio ne' React Native espongono un flusso PCM a
+ * STATO: come per il MIDI nativo, il modulo `piano-io` non è ancora
+ * compilato. Né expo-audio né React Native espongono un flusso PCM a
  * bassa latenza: registrano su file, il che non serve a un coach che
  * deve rispondere entro poche decine di millisecondi.
  *
  * Quando il modulo esistera' (AVAudioEngine su iOS, AudioRecord su
  * Android), qui cambia solo l'aggancio: il tracciatore, YIN e il resto
- * del motore sono gia' quelli definitivi, gia' testati su segnali
+ * del motore sono già quelli definitivi, già testati su segnali
  * sintetici.
  */
 
@@ -42,7 +42,7 @@ export class NativeMicrophoneInput implements NoteInputPort {
         state: 'unavailable',
         reason: 'native-module-missing',
         detail:
-          "L'ascolto dal microfono non e' incluso in questa build. Serve un development build con il modulo piano-io.",
+          "L'ascolto dal microfono non è incluso in questa build. Serve un development build con il modulo piano-io.",
       };
       return this.status;
     }

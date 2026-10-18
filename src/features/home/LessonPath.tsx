@@ -14,7 +14,7 @@ import { colors, radius, spacing } from '../../ui/theme';
  *
  * Le lezioni bloccate restano visibili, con scritto che cosa manca:
  * nascondere quello che viene dopo toglie all'allievo il senso di dove
- * sta andando, che e' meta' della motivazione.
+ * sta andando, che è metà della motivazione.
  */
 export function LessonPath() {
   const router = useRouter();

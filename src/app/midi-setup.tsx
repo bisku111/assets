@@ -19,7 +19,7 @@ import { colors, radius, spacing } from '../ui/theme';
  * pianoforte per la prima volta: "l'app lo sta vedendo?". Senza una
  * risposta esplicita, un utente con un cavo difettoso o un browser che
  * non supporta il MIDI passerebbe dal tutorial, non sentirebbe reagire
- * niente e concluderebbe che l'app e' rotta.
+ * niente e concluderebbe che l'app è rotta.
  *
  * Mostra tre cose, in ordine di utilita': lo stato del collegamento, il
  * nome dello strumento riconosciuto, e le note che arrivano davvero
@@ -36,16 +36,16 @@ export default function MidiSetup() {
   const [ultime, setUltime] = useState<number[]>([]);
   const [ricevute, setRicevute] = useState(0);
   /**
-   * Il permesso MIDI del browser e' una domanda all'utente: finche' non
+   * Il permesso MIDI del browser è una domanda all'utente: finché non
    * risponde, la promessa resta appesa. Senza questo avviso la
    * schermata direbbe "Cerco..." per sempre, e chi ha chiuso la
-   * finestrella del permesso senza accorgersene non saprebbe perche'.
+   * finestrella del permesso senza accorgersene non saprebbe perché.
    */
   const [attesaLunga, setAttesaLunga] = useState(false);
   /**
    * Chi collega il pianoforte DOPO aver aperto la schermata deve poter
-   * riprovare senza uscire e rientrare: e' la sequenza piu' naturale,
-   * perche' si apre la schermata proprio per sapere dove attaccare il cavo.
+   * riprovare senza uscire e rientrare: è la sequenza più naturale,
+   * perché si apre la schermata proprio per sapere dove attaccare il cavo.
    */
   const [tentativo, setTentativo] = useState(0);
   const montato = useRef(true);
@@ -89,7 +89,7 @@ export default function MidiSetup() {
   const collegato = stato.state === 'ready';
   const estensione = useMemo(() => {
     if (ultime.length === 0) return { from: 48, to: 72 };
-    // La tastiera si adatta a quello che arriva: cosi' si vede subito
+    // La tastiera si adatta a quello che arriva: così si vede subito
     // se lo strumento manda le note che ci si aspetta.
     const min = Math.min(...ultime, 60);
     const max = Math.max(...ultime, 72);

@@ -17,7 +17,7 @@ import type { Hand, SongArrangement } from '../../core/song/types';
  *  2. accendere e spegnere la sorgente di ingresso scelta.
  *
  * Il motore non sa che esiste React, e React non sa come si giudica una
- * nota: e' la separazione che permette di testare il difficile in Node.
+ * nota: è la separazione che permette di testare il difficile in Node.
  */
 
 export interface UsePracticeSessionOptions {
@@ -44,7 +44,7 @@ export interface PracticeView {
   /** Serve alla UI per dare la precedenza alle correzioni. */
   feedbackKind: 'correct' | 'error' | null;
   inputStatus: InputStatus;
-  /** Sorgente effettivamente in uso: puo' differire da quella preferita. */
+  /** Sorgente effettivamente in uso: può differire da quella preferita. */
   activeInput: InputSourceId;
 }
 
@@ -61,7 +61,7 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
   } = options;
 
   // La sessione viene ricreata quando cambia qualcosa di strutturale:
-  // sezione, mani, velocita' o modalita' sono parametri del motore, non
+  // sezione, mani, velocità o modalità sono parametri del motore, non
   // valori che si possono cambiare a caldo senza falsare il punteggio.
   const session = useMemo(
     () =>
@@ -141,7 +141,7 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
         if (annullato) return;
         if (porta.id === preferredInput) setInputStatus(status);
         // La prima sorgente pronta diventa quella attiva. La tastiera a
-        // schermo e' sempre in fondo alla lista, quindi funge da rete di
+        // schermo è sempre in fondo alla lista, quindi funge da rete di
         // sicurezza quando MIDI o microfono non sono disponibili.
         if (status.state === 'ready') setActiveInput((current) => (current === 'virtual-keyboard' ? porta.id : current));
       }
@@ -156,7 +156,7 @@ export function usePracticeSession(options: UsePracticeSessionOptions) {
 
   // ---- Dati derivati per il disegno ------------------------------------
   // Niente memo: la finestra dipende dalla posizione, che cambia a ogni
-  // frame, e il calcolo e' proporzionale alle sole note visibili.
+  // frame, e il calcolo è proporzionale alle sole note visibili.
   // Memorizzarlo richiederebbe di dichiarare una dipendenza che il
   // calcolo non usa davvero, cioe' mentire al lettore.
   const visibleNotes = session.visibleNotes(lookAheadMs);

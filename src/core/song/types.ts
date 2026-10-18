@@ -1,7 +1,7 @@
 /**
  * Modello di dominio del brano.
  *
- * E' la stessa forma del JSON dei contenuti e delle righe del database:
+ * È la stessa forma del JSON dei contenuti e delle righe del database:
  * un solo modello, nessuna traduzione mentale fra strati.
  */
 
@@ -26,7 +26,7 @@ export interface SongLicense {
   status: LicenseStatus;
   owner: string | null;
   type: string | null;
-  /** Territorio in cui la licenza e' valida. 'WW' = mondiale. */
+  /** Territorio in cui la licenza è valida. 'WW' = mondiale. */
   territory: string;
   startDate: string | null;  // ISO yyyy-mm-dd
   endDate: string | null;
@@ -61,14 +61,14 @@ export interface SongChord {
 }
 
 /**
- * Un arrangiamento e' il brano scritto per un livello di difficolta'.
+ * Un arrangiamento è il brano scritto per un livello di difficoltà.
  * Cambiano le note, non la canzone.
  */
 export interface SongArrangement {
   id: string;
   difficulty: DifficultyKey;
   hands: Hand[];
-  /** Velocita' iniziale consigliata (0.25..1). */
+  /** Velocità iniziale consigliata (0.25..1). */
   suggestedStartRate: number;
   /**
    * Durata di QUESTO arrangiamento. Livelli diversi hanno lunghezze

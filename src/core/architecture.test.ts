@@ -4,8 +4,8 @@ import { join } from 'path';
 /**
  * La regola di dipendenza, verificata invece che raccomandata.
  *
- * Il core e' TypeScript puro: motore, DSP, punteggio e maestro non
- * devono conoscere React, React Native, Expo ne' gli adapter. E' quello
+ * Il core è TypeScript puro: motore, DSP, punteggio e maestro non
+ * devono conoscere React, React Native, Expo né gli adapter. È quello
  * che permette di eseguirli in Node in un secondo e di sostituire una
  * sorgente di ingresso senza toccare la logica.
  *

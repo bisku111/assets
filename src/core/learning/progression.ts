@@ -4,16 +4,16 @@ import type { Hand, SongArrangement, SongSection } from '../song/types';
  * Percorso di studio a sezioni.
  *
  * Nessuno impara un brano suonandolo dall'inizio alla fine venti volte:
- * si isola la parte difficile, la si rallenta, la si ripete finche' non
+ * si isola la parte difficile, la si rallenta, la si ripete finché non
  * viene, poi si accelera. Questo modulo mette quel metodo in codice.
  *
- * La scala delle velocita' e' 50 → 60 → 70 → 80 → 90 → 100.
+ * La scala delle velocità è 50 → 60 → 70 → 80 → 90 → 100.
  */
 
 export const RATE_LADDER = [50, 60, 70, 80, 90, 100] as const;
 export type RatePct = (typeof RATE_LADDER)[number];
 
-/** Punteggio minimo per considerare superato uno scalino di velocita'. */
+/** Punteggio minimo per considerare superato uno scalino di velocità. */
 export const PASS_SCORE = 85;
 /** Sotto questa soglia conviene rallentare invece di insistere. */
 export const STRUGGLE_SCORE = 55;
@@ -48,7 +48,7 @@ function closestRateIndex(current: number): number {
 
 export interface SectionProgress {
   sectionId: string;
-  /** Velocita' massima superata con successo (0 = mai superata). */
+  /** Velocità massima superata con successo (0 = mai superata). */
   clearedRatePct: number;
   bestScore: number;
   attempts: number;
@@ -69,7 +69,7 @@ export function emptyProgress(arrangement: SongArrangement): ArrangementProgress
 
 /**
  * Registra il risultato di un tentativo.
- * Ritorna un NUOVO oggetto: lo stato non viene mutato, cosi' la UI puo'
+ * Ritorna un NUOVO oggetto: lo stato non viene mutato, così la UI può
  * confrontare prima e dopo per animare i cambiamenti.
  */
 export function recordAttempt(
@@ -99,7 +99,7 @@ export function recordAttempt(
 
 /**
  * Completamento dell'arrangiamento in percentuale.
- * Una sezione superata al 70% vale il 70% di se stessa: e' onesto verso
+ * Una sezione superata al 70% vale il 70% di se stessa: è onesto verso
  * l'utente e verso il senso della parola "completato".
  */
 export function completionPct(arrangement: SongArrangement, progress: ArrangementProgress): number {
@@ -119,7 +119,7 @@ export function nextSectionToStudy(
   return arrangement.sections.find((s) => (progress.sections[s.id]?.clearedRatePct ?? 0) < 100) ?? null;
 }
 
-/** Velocita' da cui ripartire su una sezione gia' affrontata. */
+/** Velocità da cui ripartire su una sezione già affrontata. */
 export function suggestedRateFor(
   arrangement: SongArrangement,
   progress: ArrangementProgress,
@@ -144,7 +144,7 @@ export function handAccuracyPct(stats: HandStats | undefined): number {
   return (stats.correct / stats.expected) * 100;
 }
 
-/** La mano nettamente piu' in difficolta', se ce n'e' una. */
+/** La mano nettamente più in difficoltà, se ce n'è una. */
 export function weakerHand(
   stats: Partial<Record<Hand, HandStats>>,
   minimumGapPct = 20,

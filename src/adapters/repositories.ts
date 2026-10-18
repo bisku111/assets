@@ -8,7 +8,7 @@ import { SupabaseAuth, SupabaseCatalog, SupabaseProgress } from './supabase/repo
  * Sceglie l'implementazione dei dati.
  *
  * Con Supabase configurato si usa il servizio; altrimenti l'app resta
- * completa in modalita' locale. Il resto dell'applicazione non sa quale
+ * completa in modalità locale. Il resto dell'applicazione non sa quale
  * delle due sta usando, e non deve saperlo.
  */
 
@@ -48,7 +48,7 @@ export function getRepositories(): Repositories {
  * Catalogo locale come rete di sicurezza.
  *
  * Anche con Supabase configurato, se la rete manca l'utente deve poter
- * aprire l'app e suonare. Il catalogo dimostrativo e' nel bundle: non
+ * aprire l'app e suonare. Il catalogo dimostrativo è nel bundle: non
  * costa una richiesta e non fallisce mai.
  */
 export const fallbackCatalog: CatalogPort = new LocalCatalog();

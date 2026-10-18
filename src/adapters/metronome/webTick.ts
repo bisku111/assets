@@ -3,9 +3,9 @@ import type { MetronomePort } from '../../core/ports/metronome';
 /**
  * Click del metronomo su web, generato con Web Audio.
  *
- * Nessun file audio nel repository: il suono e' un'onda sinusoidale con
- * un inviluppo molto corto. E' il riferimento migliore per la
- * calibrazione, perche' l'orecchio giudica il tempo meglio dell'occhio.
+ * Nessun file audio nel repository: il suono è un'onda sinusoidale con
+ * un inviluppo molto corto. È il riferimento migliore per la
+ * calibrazione, perché l'orecchio giudica il tempo meglio dell'occhio.
  *
  * L'inviluppo usa rampe esponenziali e non un attacco netto: un gradino
  * a zero produce un "clic" di distorsione che maschera l'attacco vero e
@@ -25,8 +25,8 @@ export class WebAudioMetronome implements MetronomePort {
   tick(strong: boolean): void {
     const ctx = this.context;
     if (!ctx) return;
-    // Il contesto parte sospeso finche' non c'e' un gesto dell'utente:
-    // riprenderlo qui e' innocuo e risolve il primo click muto.
+    // Il contesto parte sospeso finché non c'è un gesto dell'utente:
+    // riprenderlo qui è innocuo e risolve il primo click muto.
     void ctx.resume();
 
     const adesso = ctx.currentTime;

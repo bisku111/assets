@@ -13,8 +13,8 @@ function sine(frequencyHz: number, length = 2048, amplitude = 0.5, sampleRate = 
 }
 
 /**
- * Timbro simile a una nota di pianoforte: fondamentale piu' armoniche,
- * con la seconda armonica PIU' FORTE della fondamentale. E' il caso che
+ * Timbro simile a una nota di pianoforte: fondamentale più armoniche,
+ * con la seconda armonica PIU' FORTE della fondamentale. È il caso che
  * fa sbagliare l'ottava ai rilevatori basati sul picco spettrale.
  */
 function pianoLike(frequencyHz: number, length = 2048, sampleRate = SAMPLE_RATE): Float32Array {
@@ -35,7 +35,7 @@ function pianoLike(frequencyHz: number, length = 2048, sampleRate = SAMPLE_RATE)
 }
 
 function withNoise(buffer: Float32Array, amount: number, seed = 1): Float32Array {
-  // Rumore deterministico: un test che dipende da Math.random e' un test
+  // Rumore deterministico: un test che dipende da Math.random è un test
   // che prima o poi fallisce da solo.
   let state = seed;
   const random = () => {
@@ -68,7 +68,7 @@ describe('rilevamento dell altezza (YIN)', () => {
   });
 
   it('non sbaglia ottava su un timbro con la seconda armonica piu forte della fondamentale', () => {
-    // E' l'errore classico: rispondere 523 Hz (DO5) invece di 261 (DO4).
+    // È l'errore classico: rispondere 523 Hz (DO5) invece di 261 (DO4).
     for (const midi of [48, 55, 60, 64, 67]) {
       const result = detectPitch(pianoLike(midiToFrequency(midi), 4096), { sampleRate: SAMPLE_RATE });
       expect(result).not.toBeNull();
@@ -93,16 +93,16 @@ describe('rilevamento dell altezza (YIN)', () => {
 
   it('dichiara bassa la chiarezza sul rumore forte, cosi il chiamante puo scartarlo', () => {
     const result = detectPitch(withNoise(new Float32Array(4096), 0.6, 7), { sampleRate: SAMPLE_RATE });
-    // Puo' rispondere qualcosa, ma non deve spacciarlo per una nota certa.
+    // Può rispondere qualcosa, ma non deve spacciarlo per una nota certa.
     if (result) expect(result.clarity).toBeLessThan(0.9);
   });
 
   it('non restituisce mai una frequenza fuori dall estensione richiesta', () => {
     // LIMITE NOTO, verificato qui invece che nascosto: un suono PURO
     // sopra il limite di ricerca viene letto come una sua sottoarmonica
-    // (8000 Hz -> ~4000 Hz). E' inevitabile con qualunque metodo basato
+    // (8000 Hz -> ~4000 Hz). È inevitabile con qualunque metodo basato
     // sull'autocorrelazione: sopra il limite, f e f/2 sono
-    // indistinguibili. Cio' che il rilevatore garantisce e' di non
+    // indistinguibili. Cio' che il rilevatore garantisce è di non
     // uscire dall'intervallo dichiarato; a scartare le letture fuori dal
     // brano pensa il tracciatore di note (opzione midiRange).
     const result = detectPitch(sine(8000, 4096), { sampleRate: SAMPLE_RATE, maxFrequencyHz: 4200 });
@@ -119,7 +119,7 @@ describe('rilevamento dell altezza (YIN)', () => {
   });
 
   it('misura l ampiezza efficace', () => {
-    // Il valore efficace di una sinusoide e' l'ampiezza diviso radice di 2.
+    // Il valore efficace di una sinusoide è l'ampiezza diviso radice di 2.
     expect(rootMeanSquare(sine(440, 4096, 1))).toBeCloseTo(1 / Math.SQRT2, 2);
     expect(rootMeanSquare(new Float32Array(512))).toBe(0);
   });

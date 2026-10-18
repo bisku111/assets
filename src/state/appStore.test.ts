@@ -118,7 +118,7 @@ describe('registrazione di un esercizio', () => {
 describe('selettori della home', () => {
   beforeEach(() => reset());
 
-  it('propone di riprendere i brani lasciati a meta', async () => {
+  it('propone di riprendere i brani lasciati a metà', async () => {
     await recordPractice({ song: SONG, arrangement: ARRANGEMENT, result: risultato() });
     expect(continueLearning(appStore.getState()).map((s) => s.id)).toEqual(['song-1']);
   });

@@ -62,7 +62,7 @@ export function ResultSheet({
           <Conteggio label="Giuste" value={breakdown.notesCorrect} tone="success" />
           <Conteggio label="Sbagliate" value={breakdown.notesWrong} tone={breakdown.notesWrong > 0 ? 'error' : 'default'} />
           <Conteggio label="Mancate" value={breakdown.notesMissed} tone={breakdown.notesMissed > 0 ? 'warning' : 'default'} />
-          <Conteggio label="In piu" value={breakdown.notesExtra} />
+          <Conteggio label="In più" value={breakdown.notesExtra} />
         </View>
       </Card>
 

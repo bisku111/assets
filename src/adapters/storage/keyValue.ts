@@ -24,7 +24,7 @@ export class MemoryStore implements KeyValueStore {
 /**
  * Legge un JSON tollerando i dati corrotti.
  *
- * Un archivio locale puo' contenere un valore scritto da una versione
+ * Un archivio locale può contenere un valore scritto da una versione
  * precedente dell'app, o troncato da uno spegnimento improvviso. Meglio
  * ripartire dal valore predefinito che mostrare una schermata bianca.
  */

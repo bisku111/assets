@@ -10,9 +10,9 @@ import { colors } from '../ui/theme';
  * Radice dell'applicazione.
  *
  * Fa tre cose e basta: avvia il caricamento, mostra una schermata di
- * attesa finche' non sa chi e' l'utente, e lo manda dove deve andare.
+ * attesa finché non sa chi è l'utente, e lo manda dove deve andare.
  * Decidere qui la destinazione evita che ogni schermata debba
- * controllare da sola se c'e' una sessione.
+ * controllare da sola se c'è una sessione.
  */
 export default function RootLayout() {
   const [avviato, setAvviato] = useState(false);

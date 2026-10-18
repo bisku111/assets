@@ -1,11 +1,11 @@
 /**
  * Sorgente di tempo monotona, in millisecondi.
  *
- * E' una porta e non una chiamata diretta a Date.now() per due motivi:
+ * È una porta e non una chiamata diretta a Date.now() per due motivi:
  *  - nei test il tempo deve essere controllabile, altrimenti si finisce a
  *    testare il motore con dei setTimeout e i test diventano lenti e ballerini;
  *  - in produzione serve un orologio MONOTONO (performance.now), non l'ora
- *    di sistema, che puo' saltare all'indietro con la sincronizzazione NTP.
+ *    di sistema, che può saltare all'indietro con la sincronizzazione NTP.
  */
 export interface ClockPort {
   now(): number;

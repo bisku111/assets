@@ -8,7 +8,7 @@ import { Text } from './components/Text';
 /**
  * Tastiera di pianoforte.
  *
- * Il layout non e' decorativo: i tasti neri devono stare nelle posizioni
+ * Il layout non è decorativo: i tasti neri devono stare nelle posizioni
  * vere rispetto ai bianchi, altrimenti quello che l'allievo impara qui
  * non si trasferisce allo strumento. Sono quindi posizionati in
  * percentuale sulla griglia dei tasti bianchi, non distribuiti a caso.
@@ -125,7 +125,7 @@ function Key({
         { ...style, backgroundColor: background, zIndex: black ? 2 : 1 },
       ]}
     >
-      {/* Barra della mano attesa: e' l'indicazione "suona questo, adesso". */}
+      {/* Barra della mano attesa: è l'indicazione "suona questo, adesso". */}
       {expectedHand ? (
         <View style={[styles.expectedBar, { backgroundColor: handColor(expectedHand) }]} />
       ) : null}

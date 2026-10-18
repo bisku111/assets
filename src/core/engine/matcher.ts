@@ -5,7 +5,7 @@ import type { SongNote } from '../song/types';
  *
  * Decisioni di fondo, prese una volta e valide per tutto il motore:
  *
- * 1. Si giudica l'ATTACCO della nota, non il rilascio. E' il motivo per
+ * 1. Si giudica l'ATTACCO della nota, non il rilascio. È il motivo per
  *    cui il pedale di risonanza non falsa il punteggio: il sustain
  *    ritarda i note-off, non i note-on. Un sistema che misurasse anche la
  *    durata darebbe errori continui a chiunque usi il pedale.
@@ -14,10 +14,10 @@ import type { SongNote } from '../song/types';
  *    premuto e ripremendo lo stesso tasto si accumulerebbero "note
  *    corrette" gratis.
  *
- * 3. Se nella finestra non c'e' la nota giusta ma ce n'e' un'altra
- *    attesa, l'errore e' "nota sbagliata" e si dice QUALE era attesa
- *    (Prevista: MI / Suonata: RE). Se non c'e' nulla di atteso, e' una
- *    nota di troppo: pesa meno, perche' spesso e' una ditata.
+ * 3. Se nella finestra non c'è la nota giusta ma ce n'è un'altra
+ *    attesa, l'errore è "nota sbagliata" e si dice QUALE era attesa
+ *    (Prevista: MI / Suonata: RE). Se non c'è nulla di atteso, è una
+ *    nota di troppo: pesa meno, perché spesso è una ditata.
  */
 
 export type MatchOutcome =
@@ -34,7 +34,7 @@ export interface ExpectedNoteState {
 }
 
 export interface MatcherOptions {
-  /** Finestra entro cui una nota puo' essere considerata "a tempo". */
+  /** Finestra entro cui una nota può essere considerata "a tempo". */
   toleranceMs: number;
   /**
    * Latenza dell'ingresso, misurata in calibrazione. Viene SOTTRATTA dal
@@ -120,8 +120,8 @@ export class NoteMatcher {
     }
 
     if (bestAny) {
-      // Nota sbagliata: la nota attesa NON viene consumata, cosi' l'utente
-      // puo' ancora correggersi dentro la finestra.
+      // Nota sbagliata: la nota attesa NON viene consumata, così l'utente
+      // può ancora correggersi dentro la finestra.
       this.wrong += 1;
       return {
         kind: 'wrong',
@@ -137,8 +137,8 @@ export class NoteMatcher {
   }
 
   /**
-   * Segna come mancate le note il cui momento e' passato.
-   * Va chiamata ad ogni frame: e' cosi' che una nota non suonata diventa
+   * Segna come mancate le note il cui momento è passato.
+   * Va chiamata ad ogni frame: è così che una nota non suonata diventa
    * un errore invece di restare in sospeso per sempre.
    */
   update(positionMs: number): ExpectedNoteState[] {
@@ -199,7 +199,7 @@ export class NoteMatcher {
   }
 }
 
-/** Tolleranze per modalita': imparando si perdona, esibendosi no. */
+/** Tolleranze per modalità: imparando si perdona, esibendosi no. */
 export const TOLERANCE_BY_MODE = {
   learn: 400,
   practice: 220,
@@ -217,8 +217,8 @@ export const MODE_LABEL_IT: Record<PracticeMode, string> = {
 };
 
 export const MODE_DESCRIPTION_IT: Record<PracticeMode, string> = {
-  learn: 'Il brano ti aspetta: niente va avanti finche\' non suoni la nota giusta.',
-  practice: 'Velocita\' costante con feedback continuo su ogni nota.',
+  learn: 'Il brano ti aspetta: niente va avanti finché non suoni la nota giusta.',
+  practice: 'Velocità costante con feedback continuo su ogni nota.',
   play: 'Si suona davvero, con il giudizio a fine esecuzione.',
   performance: 'Come su un palco: nessun aiuto a schermo, giudizio severo.',
 };

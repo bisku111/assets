@@ -9,7 +9,7 @@ export function findArrangement(song: Song, difficulty: DifficultyKey): SongArra
   return song.arrangements.find((a) => a.difficulty === difficulty) ?? null;
 }
 
-/** L'arrangiamento della difficolta' richiesta, o il piu' vicino disponibile. */
+/** L'arrangiamento della difficoltà richiesta, o il più vicino disponibile. */
 export function resolveArrangement(song: Song, preferred: DifficultyKey): SongArrangement | null {
   const exact = findArrangement(song, preferred);
   if (exact) return exact;

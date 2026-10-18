@@ -77,7 +77,7 @@ describe('microfono su web', () => {
   it('dichiara di essere una stima, non un dato esatto', async () => {
     const fake = fakeWebAudio();
     const input = new WebAudioMicrophoneInput(fake.deps);
-    expect(input.polyphonic).toBe(false); // YIN e' monofonico
+    expect(input.polyphonic).toBe(false); // YIN è monofonico
     const eventi: PlayedNoteEvent[] = [];
     input.subscribe((e) => eventi.push(e));
     await input.start();
@@ -96,7 +96,7 @@ describe('microfono su web', () => {
     await input.start();
     for (let i = 0; i < 6; i++) fake.feed(60, i);
 
-    // Il primo blocco copre 0..46 ms: l'attacco non puo' essere datato dopo.
+    // Il primo blocco copre 0..46 ms: l'attacco non può essere datato dopo.
     expect(eventi.find((e) => e.type === 'note-on')!.timestamp)
       .toBeLessThanOrEqual((BLOCK / SAMPLE_RATE) * 1000);
   });

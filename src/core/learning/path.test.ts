@@ -49,7 +49,7 @@ describe('percorso didattico', () => {
   it('spiega quanto manca per aprire una lezione bloccata', () => {
     const path = buildLessonPath(LEZIONI, [avanzamento('l1', 40)]);
     expect(lockMessageIt(path, 1)).toContain('20%');
-    expect(lockMessageIt(path, 0)).toBeNull(); // la prima non e' mai bloccata
+    expect(lockMessageIt(path, 0)).toBeNull(); // la prima non è mai bloccata
   });
 
   it('riporta il punteggio migliore di ogni lezione', () => {

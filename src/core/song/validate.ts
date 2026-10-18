@@ -5,7 +5,7 @@ import { DIFFICULTY_ORDER, type Song, type SongArrangement, type SongNote } from
  * Validazione dei contenuti a runtime.
  *
  * Motivo: un file di catalogo scritto a mano (o importato da un editore)
- * puo' contenere un errore. Se quell'errore arriva al player, l'utente
+ * può contenere un errore. Se quell'errore arriva al player, l'utente
  * vede un crash durante una lezione. Meglio scartare il brano al
  * caricamento e dirlo con chiarezza.
  */
@@ -43,8 +43,8 @@ export function validateSong(song: Song): ValidationResult {
     err('timeSignature', `indicazione di tempo non valida: ${num}/${den}`);
   }
 
-  // La licenza non e' un dettaglio burocratico: decide se il brano puo'
-  // essere distribuito. Un contenuto senza licenza coerente e' un errore
+  // La licenza non è un dettaglio burocratico: decide se il brano può
+  // essere distribuito. Un contenuto senza licenza coerente è un errore
   // bloccante, non un avviso.
   if (song.license.status === 'cleared' && !song.license.owner) {
     err('license.owner', 'un brano dichiarato "cleared" deve indicare il titolare dei diritti');
@@ -57,22 +57,22 @@ export function validateSong(song: Song): ValidationResult {
 
   const longest = Math.max(0, ...song.arrangements.map((a) => a.durationMs));
   if (song.arrangements.length > 0 && Math.abs(longest - song.durationMs) > 1) {
-    err('durationMs', `la durata del brano (${song.durationMs} ms) non coincide con quella dell'arrangiamento piu' lungo (${longest} ms)`);
+    err('durationMs', `la durata del brano (${song.durationMs} ms) non coincide con quella dell'arrangiamento più lungo (${longest} ms)`);
   }
 
   const seenDifficulties = new Set<string>();
   for (const arrangement of song.arrangements) {
     const base = `arrangements[${arrangement.id}]`;
     if (seenDifficulties.has(arrangement.difficulty)) {
-      err(base, `difficolta' duplicata: ${arrangement.difficulty}`);
+      err(base, `difficoltà duplicata: ${arrangement.difficulty}`);
     }
     seenDifficulties.add(arrangement.difficulty);
 
     if (!DIFFICULTY_ORDER.includes(arrangement.difficulty)) {
-      err(base, `difficolta' sconosciuta: ${arrangement.difficulty}`);
+      err(base, `difficoltà sconosciuta: ${arrangement.difficulty}`);
     }
     if (!(arrangement.suggestedStartRate >= 0.25 && arrangement.suggestedStartRate <= 1)) {
-      err(`${base}.suggestedStartRate`, `velocita' iniziale fuori intervallo: ${arrangement.suggestedStartRate}`);
+      err(`${base}.suggestedStartRate`, `velocità iniziale fuori intervallo: ${arrangement.suggestedStartRate}`);
     }
 
     validateArrangement(arrangement, base, err, warn);

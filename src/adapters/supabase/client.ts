@@ -1,9 +1,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Client Supabase, creato solo se la configurazione c'e'.
+ * Client Supabase, creato solo se la configurazione c'è.
  *
- * L'assenza di configurazione NON e' un errore: e' la modalita' locale,
+ * L'assenza di configurazione NON è un errore: è la modalità locale,
  * in cui l'app funziona lo stesso con il catalogo dimostrativo e i
  * progressi sul dispositivo. Serve a poter provare l'MVP subito dopo il
  * clone, senza creare prima un progetto.
@@ -21,7 +21,7 @@ export function getSupabaseClient(): SupabaseClient | null {
   if (!cached) {
     cached = createClient(url as string, anonKey as string, {
       auth: {
-        // Su mobile non c'e' un URL da cui leggere il token di ritorno.
+        // Su mobile non c'è un URL da cui leggere il token di ritorno.
         detectSessionInUrl: false,
         persistSession: true,
         autoRefreshToken: true,

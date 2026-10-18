@@ -11,7 +11,7 @@ export interface CardProps extends ViewProps {
 /**
  * Contenitore standard.
  *
- * Quando e' premibile, l'etichetta di accessibilita' sta SOLO sul
+ * Quando è premibile, l'etichetta di accessibilita' sta SOLO sul
  * Pressable: metterla anche sulla View interna creerebbe due nodi
  * sovrapposti con lo stesso nome, che confondono gli screen reader e
  * intercettano il tocco destinato al pulsante.

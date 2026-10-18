@@ -3,9 +3,9 @@ import { SERVABLE_LICENSE_STATUSES, type Song, type SongLicense } from './types'
 /**
  * Controllo di licenza lato client.
  *
- * Il controllo che conta e' quello in SQL (`public.is_song_servable`):
- * questo e' la seconda barriera, per il catalogo demo incluso nel bundle
- * e per i contenuti gia' scaricati sul dispositivo. Le due
+ * Il controllo che conta è quello in SQL (`public.is_song_servable`):
+ * questo è la seconda barriera, per il catalogo demo incluso nel bundle
+ * e per i contenuti già scaricati sul dispositivo. Le due
  * implementazioni applicano la stessa regola, di proposito.
  */
 export function isLicenseServable(license: SongLicense, today: Date = new Date()): boolean {

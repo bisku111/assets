@@ -14,8 +14,8 @@ import { Transport } from './transport';
  * Una sessione di studio: trasporto + confronto + punteggio, in un solo
  * oggetto che la UI pilota.
  *
- * E' "a lettura": non ha timer propri. Chi disegna chiama `tick()` una
- * volta per frame e riceve tutto quello che serve a disegnare. Cosi' il
+ * È "a lettura": non ha timer propri. Chi disegna chiama `tick()` una
+ * volta per frame e riceve tutto quello che serve a disegnare. Così il
  * motore non conosce React, e i test possono far scorrere il tempo a
  * mano invece di aspettarlo davvero.
  */
@@ -34,7 +34,7 @@ export interface PracticeSessionOptions {
   inputLatencyMs?: number;
   countInMs?: number;
   /**
-   * Modalita' IMPARA: il brano si ferma ad aspettare la nota giusta
+   * Modalità IMPARA: il brano si ferma ad aspettare la nota giusta
    * invece di andare avanti lasciando indietro l'allievo.
    */
   waitForInput?: boolean;
@@ -44,7 +44,7 @@ export interface SessionFrame {
   positionMs: number;
   progress: number;
   state: 'idle' | 'playing' | 'paused' | 'ended';
-  /** Nota che il brano sta aspettando (solo in modalita' IMPARA). */
+  /** Nota che il brano sta aspettando (solo in modalità IMPARA). */
   waitingFor: SongNote | null;
   currentSection: SongSection | null;
   /** Ultimo esito, per il feedback immediato a schermo. */
@@ -160,7 +160,7 @@ export class PracticeSession {
   handleInput(event: PlayedNoteEvent): MatchOutcome | null {
     if (event.type !== 'note-on') return null;
 
-    // In attesa (modalita' IMPARA) il brano e' fermo: si valuta la nota
+    // In attesa (modalità IMPARA) il brano è fermo: si valuta la nota
     // al tempo in cui era attesa, non "adesso", altrimenti chi aspetta
     // due secondi risulterebbe in ritardo di due secondi.
     const position = this.waitingForState
@@ -189,12 +189,12 @@ export class PracticeSession {
     let notesJustMissed: ExpectedNoteState[] = [];
 
     if (this.waitForInput) {
-      // Nella modalita' guidata non si "perdono" note: si aspetta.
+      // Nella modalità guidata non si "perdono" note: si aspetta.
       //
       // Il controllo NON dipende dal fatto che il trasporto stia
       // suonando. Se l'app resta in secondo piano, al ritorno la
-      // posizione e' balzata avanti di secondi e il trasporto puo'
-      // essere gia' "finito": anche in quel caso bisogna tornare
+      // posizione è balzata avanti di secondi e il trasporto può
+      // essere già "finito": anche in quel caso bisogna tornare
       // indietro alla nota attesa, non saltarla.
       const pending = this.nextPendingNote();
       if (pending && !this.waitingForState && position >= pending.note.startMs) {
@@ -232,7 +232,7 @@ export class PracticeSession {
 
   /**
    * Chiude la sessione e calcola il risultato.
-   * Le note non ancora giudicate diventano mancate: interrompere a meta'
+   * Le note non ancora giudicate diventano mancate: interrompere a metà
    * non deve produrre un 100% ottenuto suonando tre note.
    */
   finish(): SessionResult {
@@ -250,7 +250,7 @@ export class PracticeSession {
     };
   }
 
-  /** Precisione divisa per mano: e' cio' che permette al maestro di isolarne una. */
+  /** Precisione divisa per mano: è cio' che permette al maestro di isolarne una. */
   handStats(): Partial<Record<Hand, HandStats>> {
     const stats: Partial<Record<Hand, HandStats>> = {};
     for (const state of this.matcher.notes) {

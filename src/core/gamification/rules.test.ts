@@ -21,7 +21,7 @@ describe('XP e livelli', () => {
     expect(levelForXp(0)).toBe(1);
     expect(levelForXp(100)).toBe(2);
     expect(levelForXp(400)).toBe(3);
-    // Il secondo livello costa 100 XP, il terzo molti di piu'.
+    // Il secondo livello costa 100 XP, il terzo molti di più.
     expect(xpForLevel(3) - xpForLevel(2)).toBeGreaterThan(xpForLevel(2) - xpForLevel(1));
   });
 

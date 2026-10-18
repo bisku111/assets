@@ -6,25 +6,25 @@ import { detectPitch, type YinOptions } from './yin';
  * Da flusso audio a note.
  *
  * Il rilevatore di altezza da' una lettura per blocco (circa ogni 10-45
- * ms). Trasformarle in note e' un problema a se': una singola lettura
- * non e' una nota. Senza i filtri qui sotto, il microfono produrrebbe
+ * ms). Trasformarle in note è un problema a se': una singola lettura
+ * non è una nota. Senza i filtri qui sotto, il microfono produrrebbe
  * decine di note fantasma al secondo e il punteggio sarebbe una lotteria.
  *
  * Quattro difese, ognuna contro un problema osservabile:
  *
  *  1. CONFERMA: servono N letture consecutive della stessa nota prima di
  *     dichiararla. Elimina i singoli blocchi sbagliati sull'attacco,
- *     dove il suono e' ancora rumore percussivo.
+ *     dove il suono è ancora rumore percussivo.
  *  2. CHIAREZZA MINIMA: si scartano le letture poco periodiche (voci,
  *     traffico, ventola).
- *  3. INTONAZIONE: una lettura a piu' di ~35 cent dalla nota temperata
- *     e' probabilmente rumore, non un tasto.
- *  4. ESTENSIONE: si accettano solo le note che il brano puo' contenere.
- *     E' anche la difesa contro le sottoarmoniche (vedi yin.test.ts).
+ *  3. INTONAZIONE: una lettura a più di ~35 cent dalla nota temperata
+ *     è probabilmente rumore, non un tasto.
+ *  4. ESTENSIONE: si accettano solo le note che il brano può contenere.
+ *     È anche la difesa contro le sottoarmoniche (vedi yin.test.ts).
  *
  * E il RIATTACCO della stessa nota: se l'altezza non cambia, l'unica
- * traccia di un nuovo colpo e' un balzo di energia. Viene rilevato, ma
- * la cosa e' dichiarata come approssimata: due DO ribattuti velocemente
+ * traccia di un nuovo colpo è un balzo di energia. Viene rilevato, ma
+ * la cosa è dichiarata come approssimata: due DO ribattuti velocemente
  * al microfono possono essere letti come uno solo. Chi vuole precisione
  * su questo usa il MIDI, e l'app glielo dice.
  */
@@ -42,7 +42,7 @@ export interface NoteTrackerOptions extends YinOptions {
   releaseFrames?: number;
   /** Salto di ampiezza che segnala un nuovo colpo sulla stessa nota. */
   reattackRatio?: number;
-  /** Durata minima di una nota, in ms: sotto e' un artefatto. */
+  /** Durata minima di una nota, in ms: sotto è un artefatto. */
   minNoteMs?: number;
 }
 
@@ -75,7 +75,7 @@ export class AudioNoteTracker {
 
   /**
    * Analizza un blocco di campioni.
-   * @param timestamp istante in cui il blocco e' stato CATTURATO.
+   * @param timestamp istante in cui il blocco è stato CATTURATO.
    */
   process(samples: Float32Array | number[], timestamp: number): PlayedNoteEvent[] {
     const reading = detectPitch(samples, this.options);
@@ -97,7 +97,7 @@ export class AudioNoteTracker {
     const events: PlayedNoteEvent[] = [];
 
     if (this.activeMidi === pitch.midi) {
-      // Stessa nota: l'unico indizio di un nuovo colpo e' l'energia.
+      // Stessa nota: l'unico indizio di un nuovo colpo è l'energia.
       if (
         reading.rms > this.activeRms * (this.options.reattackRatio ?? 1.8) &&
         timestamp - this.activeSince > (this.options.minNoteMs ?? 55)
@@ -119,7 +119,7 @@ export class AudioNoteTracker {
 
     if (this.candidate.frames >= (this.options.confirmations ?? 2)) {
       if (this.activeMidi !== null) events.push(this.noteOff(this.activeMidi, timestamp));
-      // Si data la nota al PRIMO blocco in cui e' comparsa, non a quello
+      // Si data la nota al PRIMO blocco in cui è comparsa, non a quello
       // della conferma: altrimenti ogni nota risulterebbe in ritardo di
       // un paio di blocchi, cioe' di decine di millisecondi.
       events.push(this.noteOn(pitch.midi, reading.rms, reading.clarity, this.candidate.firstTimestamp));
@@ -155,7 +155,7 @@ export class AudioNoteTracker {
 
     this.silentFrames += 1;
     // Non si spegne al primo blocco vuoto: un singolo blocco incerto in
-    // mezzo a una nota tenuta e' normale.
+    // mezzo a una nota tenuta è normale.
     if (this.silentFrames < (this.options.releaseFrames ?? 3)) return [];
 
     const event = this.noteOff(this.activeMidi, timestamp);
@@ -171,8 +171,8 @@ export class AudioNoteTracker {
       midi,
       velocity: Math.min(1, rms * 3),
       timestamp,
-      // Il microfono e' una STIMA: la confidenza viaggia con l'evento e
-      // arriva fino alla UI, che puo' essere piu' prudente nel correggere.
+      // Il microfono è una STIMA: la confidenza viaggia con l'evento e
+      // arriva fino alla UI, che può essere più prudente nel correggere.
       confidence: clarity,
       source: 'microphone',
     };

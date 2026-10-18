@@ -16,7 +16,7 @@ const context = (over: Partial<CoachContext> = {}): CoachContext => ({
 });
 
 describe('il maestro', () => {
-  it('dopo un ottimo tentativo propone di salire di velocita', () => {
+  it('dopo un ottimo tentativo propone di salire di velocità', () => {
     const advice = coachAdvice(context());
     expect(advice.action).toEqual({ type: 'increase-rate', ratePct: 80 });
     expect(advice.tone).toBe('celebrate');

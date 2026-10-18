@@ -3,17 +3,17 @@ import type { MatcherSnapshot } from '../engine/matcher';
 /**
  * Dal conteggio grezzo al voto.
  *
- * Tre grandezze distinte, perche' rispondono a tre domande diverse che
+ * Tre grandezze distinte, perché rispondono a tre domande diverse che
  * l'allievo si pone davvero:
  *
  *  PRECISIONE  ho preso le note giuste?
  *  TEMPO       sono andato a tempo o ho anticipato/ritardato?
  *  RITMO       sono stato COSTANTE?
  *
- * Tempo e ritmo non sono la stessa cosa, ed e' importante separarli.
- * Chi suona sistematicamente 60 ms indietro ma con regolarita' e' molto
- * piu' avanti di chi ha una media perfetta perche' meta' note sono in
- * anticipo e meta' in ritardo. Il primo deve solo spostarsi; il secondo
+ * Tempo e ritmo non sono la stessa cosa, ed è importante separarli.
+ * Chi suona sistematicamente 60 ms indietro ma con regolarita' è molto
+ * più avanti di chi ha una media perfetta perché metà note sono in
+ * anticipo e metà in ritardo. Il primo deve solo spostarsi; il secondo
  * non ha ancora il tempo interno. Un punteggio unico li confonderebbe.
  */
 
@@ -24,7 +24,7 @@ export interface ScoreBreakdown {
   rhythmPct: number;
   /** Aderenza: quanto sono piccoli gli scarti. */
   timingPct: number;
-  /** Quanta parte dell'esercizio e' stata affrontata. */
+  /** Quanta parte dell'esercizio è stata affrontata. */
   completionPct: number;
   /** 0..100 */
   score: number;
@@ -40,7 +40,7 @@ export interface ScoreBreakdown {
 }
 
 export interface ScoreOptions {
-  /** Finestra di tolleranza usata: il voto dipende dalla modalita'. */
+  /** Finestra di tolleranza usata: il voto dipende dalla modalità. */
   toleranceMs: number;
 }
 
@@ -60,7 +60,7 @@ export function computeScore(snapshot: MatcherSnapshot, options: ScoreOptions): 
   const meanAbsolute = mean(deviations.map(Math.abs));
   const deviationSpreadMs = standardDeviation(deviations);
 
-  // Aderenza: 100 se si e' esattamente sul tempo, 0 al bordo della finestra.
+  // Aderenza: 100 se si è esattamente sul tempo, 0 al bordo della finestra.
   const timingPct = deviations.length === 0 ? 0 : clampPct((1 - meanAbsolute / tolerance) * 100);
 
   // Regolarita': si tollera una dispersione fino a tre quarti della

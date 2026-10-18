@@ -1,11 +1,11 @@
 /**
  * Riferimento del battito per la calibrazione.
  *
- * E' una porta perche' ogni piattaforma puo' offrire un riferimento
+ * È una porta perché ogni piattaforma può offrire un riferimento
  * diverso, e la differenza va dichiarata invece che nascosta: un click
- * udibile e' un riferimento migliore di un lampo sullo schermo, e un
+ * udibile è un riferimento migliore di un lampo sullo schermo, e un
  * impulso tattile sta nel mezzo. La schermata dice all'utente quale sta
- * usando, perche' cambia quanto e' facile stare a tempo.
+ * usando, perché cambia quanto è facile stare a tempo.
  */
 export type MetronomeKind = 'audio' | 'haptic' | 'visual';
 
@@ -24,6 +24,6 @@ export function metronomeHintIt(kind: MetronomeKind): string {
     case 'haptic':
       return 'Senti una vibrazione a ogni battito, e vedi il cerchio pulsare.';
     case 'visual':
-      return 'Segui il cerchio che pulsa: su questo dispositivo non c e un click.';
+      return "Segui il cerchio che pulsa: su questo dispositivo non c'è un click.";
   }
 }

@@ -10,7 +10,7 @@ describe('catalogo dimostrativo', () => {
     expect(motivi).toEqual([]);
   });
 
-  it('contiene brani su piu livelli di difficolta', () => {
+  it('contiene brani su più livelli di difficoltà', () => {
     expect(DEMO_SONGS.length).toBeGreaterThanOrEqual(6);
     expect(DEMO_SONGS.filter((s) => s.arrangements.length >= 2).length).toBeGreaterThanOrEqual(5);
   });
@@ -22,7 +22,7 @@ describe('catalogo dimostrativo', () => {
     }
   });
 
-  // Questo test e' un vincolo legale, non tecnico: se qualcuno aggiunge
+  // Questo test è un vincolo legale, non tecnico: se qualcuno aggiunge
   // un brano protetto al catalogo del bundle, la build deve fallire.
   it('contiene SOLO brani originali o di pubblico dominio', () => {
     for (const song of DEMO_SONGS) {
