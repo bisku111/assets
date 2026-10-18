@@ -1,0 +1,186 @@
+# 🎹 Maestro — impara il pianoforte con le canzoni italiane
+
+App mobile (iOS · Android · web) che insegna il pianoforte **ascoltando quello
+che suoni** e correggendoti in tempo reale, come farebbe un insegnante seduto
+accanto a te.
+
+> Vedi [`ARCHITECTURE.md`](./ARCHITECTURE.md) per l'analisi tecnica e la sezione
+> [Cosa funziona davvero](#cosa-funziona-davvero) per l'elenco onesto di ciò che
+> è implementato e ciò che richiede ancora lavoro nativo.
+
+---
+
+## Indice
+
+- [Requisiti](#requisiti)
+- [Installazione](#installazione)
+- [Configurazione](#configurazione)
+- [Database Supabase](#database-supabase)
+- [Sviluppo locale](#sviluppo-locale)
+- [Test](#test)
+- [Build iOS / Android](#build-ios--android)
+- [Cosa funziona davvero](#cosa-funziona-davvero)
+- [Contenuti e copyright](#contenuti-e-copyright)
+
+---
+
+## Requisiti
+
+| Strumento | Versione |
+|---|---|
+| Node.js | ≥ 20 (sviluppato su 22) |
+| npm | ≥ 10 |
+| Expo CLI | incluso nel progetto (`npx expo`) |
+| Xcode | 16+ — solo per build iOS |
+| Android Studio | SDK 35+ — solo per build Android |
+
+Per provare l'app **non serve** né Xcode né Android Studio: `npm run web` la apre
+nel browser, dove funzionano anche MIDI e microfono (Chrome/Edge).
+
+---
+
+## Installazione
+
+```bash
+git clone <repo>
+cd maestro-piano
+npm install
+cp .env.example .env       # facoltativo: senza .env l'app parte in modalità locale
+```
+
+---
+
+## Configurazione
+
+| Variabile | Obbligatoria | Descrizione |
+|---|---|---|
+| `EXPO_PUBLIC_SUPABASE_URL` | no | URL del progetto Supabase |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | no | Chiave pubblica (anon) del progetto |
+
+**Senza queste variabili l'app funziona lo stesso**, in *modalità locale*:
+profilo sul dispositivo, catalogo demo incluso nel bundle, progressi salvati
+offline. È voluto: l'MVP deve essere provabile senza backend, e l'app deve
+restare usabile quando la rete non c'è.
+
+⚠️ Non inserire mai la `service_role key` in una variabile `EXPO_PUBLIC_*`:
+finirebbe dentro il bundle dell'app, quindi in mano a chiunque.
+
+---
+
+## Database Supabase
+
+Le migrazioni SQL sono in [`supabase/migrations/`](./supabase/migrations), in
+ordine di applicazione: schema, indici, **Row Level Security** e funzioni di
+autorizzazione.
+
+```bash
+npm install -g supabase
+supabase link --project-ref <project-ref>
+supabase db push
+```
+
+Ciclo di sviluppo interamente locale:
+
+```bash
+supabase start      # Postgres + Auth + Storage in Docker
+supabase db reset   # applica le migrazioni
+```
+
+Verifica della sicurezza, senza Docker e senza progetto Supabase:
+
+```bash
+npm run test:db     # avvia un Postgres usa-e-getta, applica tutto, esegue i test RLS
+```
+
+Garanzie dello schema:
+- RLS **attiva su tutte le tabelle**, con un test che fallisce se ne compare una senza;
+- nessuna policy permissiva `using (true)` sui dati personali, verificato da un test;
+- l'accesso ai brani premium è deciso da una funzione SQL (`public.can_access_song`),
+  quindi **non è aggirabile modificando il client**;
+- un brano con licenza scaduta o non pubblicato **non esce dal database**;
+- abbonamenti e pagamenti sono in sola lettura per i client: solo il `service_role`
+  (webhook dello store) può scriverli.
+
+---
+
+## Sviluppo locale
+
+```bash
+npm run web        # browser — MIDI e microfono reali (Chrome/Edge)
+npm run ios        # simulatore iOS       (richiede macOS + Xcode)
+npm run android    # emulatore Android    (richiede Android Studio)
+```
+
+Consiglio: sviluppa la logica in `src/core/` con `npm run test:watch`. Il core
+non dipende da React né da React Native, quindi il ciclo di feedback è
+immediato — millisecondi, non ricompilazioni.
+
+---
+
+## Test
+
+```bash
+npm run typecheck   # tsc --noEmit (strict)
+npm test            # Jest: progetto "core" (node) + progetto "app" (componenti)
+npm run verify      # typecheck + test: quello che gira in CI
+npm run test:db     # migrazioni + test RLS su Postgres temporaneo
+npm run lint
+```
+
+Il progetto `core` copre: teoria musicale, notazione e validazione dei brani,
+trasporto, matching (accordi, note extra, mancate, pedale, latenza), punteggio,
+coach, progressione, pitch detection YIN su segnali sintetici, tracciamento
+note, parser MIDI, gamification, archivio locale e la regola di dipendenza del
+core.
+
+---
+
+## Build iOS / Android
+
+Le funzioni MIDI e microfono native richiedono un **development build** (non
+Expo Go), perché usano un modulo nativo.
+
+```bash
+npm install -g eas-cli
+eas build --profile development --platform ios      # o android
+eas build --profile production  --platform all
+npx expo prebuild                                   # genera ios/ e android/ in locale
+```
+
+---
+
+## Cosa funziona davvero
+
+Elenco onesto. Niente è simulato con dati finti.
+
+| Area | Stato |
+|---|---|
+| Motore temporale, matching, punteggio, coach | ✅ implementati e testati |
+| Pitch detection (YIN) e parser MIDI | ✅ implementati e testati |
+| Tastiera a schermo come sorgente di input reale | ✅ |
+| MIDI e microfono su **web** | ✅ reali (Web MIDI / Web Audio) |
+| MIDI e microfono su **iOS/Android** | ⛔ richiedono il modulo nativo `piano-io` (ARCHITECTURE.md §7.3). L'app lo dichiara all'utente e propone la tastiera a schermo |
+| Pagamenti | ⛔ non implementati. Schema e gating pronti, manca l'SDK di billing |
+
+---
+
+## Contenuti e copyright
+
+Il repository contiene **esclusivamente**:
+
+- **brani originali** scritti per questo progetto;
+- **brani di pubblico dominio** (autori deceduti da oltre settant'anni, o
+  melodie tradizionali anonime);
+- esercizi didattici, che non sono materiale tutelabile.
+
+Non sono inclusi spartiti, MIDI, registrazioni, testi o copertine di brani
+protetti. Gli artisti italiani contemporanei compaiono in catalogo come **voci
+in attesa di licenza** (`is_placeholder`), senza alcun contenuto musicale
+associato: servono a dimostrare che l'architettura è pronta a ricevere
+repertorio ufficiale. Un test fallisce se qualcuno aggiunge al bundle un brano
+che non sia originale o di pubblico dominio.
+
+Ogni brano nel database porta con sé `license_status`, `license_owner`,
+`license_type`, `territory`, `start_date`, `end_date`. Un brano la cui licenza
+non è valida **non viene servito dal database**: il filtro è in SQL, non nel
+client.
