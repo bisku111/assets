@@ -11,6 +11,7 @@ import {
 import { HomeRow } from '../../features/home/HomeRow';
 import { LessonPath } from '../../features/home/LessonPath';
 import { SongCard } from '../../features/catalog/SongCard';
+import { Button } from '../../ui/components/Button';
 import { Card } from '../../ui/components/Card';
 import { ProgressBar } from '../../ui/components/ProgressBar';
 import { StatTile } from '../../ui/components/StatTile';
@@ -54,6 +55,7 @@ export default function Home() {
   const italiane = repertorio.filter((s) => s.tags.includes('italiana') || s.tags.includes('ballata'));
   const principianti = repertorio.filter((s) => s.baseDifficulty === 'beginner');
   const dueMani = repertorio.filter(startsWithTwoHands);
+  const importati = songs.filter((s) => s.tags.includes('importato'));
   const gratuite = repertorio.filter((s) => s.isFree);
 
   const apri = (id: string) => router.push(`/song/${id}`);
@@ -124,6 +126,17 @@ export default function Home() {
         <HomeRow title="Per cominciare" subtitle="Brani che si imparano al primo tentativo">
           {principianti.map(scheda)}
         </HomeRow>
+
+        <HomeRow
+          title="I miei brani"
+          subtitle="Importati dai tuoi file MIDI, solo su questo dispositivo"
+          empty="Non hai ancora importato niente. Tocca qui sotto per aggiungere un file MIDI."
+        >
+          {importati.map(scheda)}
+        </HomeRow>
+        <View style={{ paddingHorizontal: spacing.lg, marginTop: -spacing.sm, marginBottom: spacing.lg }}>
+          <Button label="Aggiungi un brano da un file" variant="ghost" onPress={() => router.push('/import')} />
+        </View>
 
         <HomeRow title="A due mani" subtitle="Destra e sinistra insieme fin dal primo livello">
           {dueMani.map(scheda)}

@@ -15,11 +15,17 @@ export type LicenseStatus =
   | 'original'        // scritto per questo progetto
   | 'public_domain'   // autore deceduto da oltre 70 anni, o tradizionale anonimo
   | 'cleared'         // licenza ottenuta dall'avente diritto
+  | 'user_import'     // file dell'utente, importato sul suo dispositivo
   | 'pending'         // in trattativa: nessun contenuto musicale associato
   | 'expired'
   | 'blocked';
 
-/** Gli stati che autorizzano a servire il contenuto musicale. */
+/**
+ * Gli stati che autorizzano a SERVIRE il contenuto ad altri.
+ *
+ * 'user_import' non è qui di proposito: un brano importato resta sul
+ * dispositivo di chi l'ha importato, si suona ma non si distribuisce.
+ */
 export const SERVABLE_LICENSE_STATUSES: readonly LicenseStatus[] = ['original', 'public_domain', 'cleared'];
 
 export interface SongLicense {

@@ -15,7 +15,7 @@
  */
 import { createServer } from 'http';
 import { readFile } from 'fs/promises';
-import { extname, join } from 'path';
+import { extname, join, resolve } from 'path';
 import { chromium } from 'playwright';
 
 const ROOT = process.argv[2] ?? 'dist';
@@ -292,6 +292,54 @@ try {
   // L'aiuto dice "poi tocca Riprova": il pulsante deve esistere.
   passo('offre di riprovare dopo aver collegato il cavo',
     await visibile(page.getByRole('button', { name: 'Riprova' })));
+
+  // ---- 12. Importazione di un brano da un file MIDI ---------------------
+  // Si riparte dalla Home: la schermata di importazione si raggiunge da li'.
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1800);
+
+  await toccaVisibile('Aggiungi un brano da un file');
+  await page.waitForTimeout(900);
+  passo('la schermata di importazione si apre', await visibile(page.getByText('COSA POSSO IMPORTARE')));
+  // Dichiarare il limite e' parte della funzione, non una nota a margine.
+  passo('dichiara di non saper leggere un audio',
+    await visibile(page.getByText(/MP3, registrazioni, video o link/)));
+
+  const fixtureMidi = resolve('scripts/fixtures/prova-importazione.mid');
+  const [selettore] = await Promise.all([
+    page.waitForEvent('filechooser', { timeout: 10000 }),
+    toccaVisibile('Scegli un file MIDI'),
+  ]);
+  await selettore.setFiles(fixtureMidi);
+  await page.waitForTimeout(1500);
+
+  passo('il file MIDI viene letto davvero', await visibile(page.getByText('COSA HO TROVATO')));
+  passo('riconosce le due tracce di pianoforte', await visibile(page.getByText(/Piano Right/)));
+  passo('conta le note trovate', await visibile(page.getByText(/10 note ·/)));
+
+  await toccaVisibile('Aggiungi alla mia libreria');
+  await page.waitForTimeout(1500);
+  passo('il brano entra nella libreria', await visibile(page.getByText(/e' nella tua libreria|è nella tua libreria/)));
+  passo('dice come lo ha preparato', await visibile(page.getByText(/note in \d+ sezion/)));
+
+  await toccaVisibile('Apri il brano');
+  await page.waitForTimeout(1800);
+  passo('la scheda del brano importato si apre', await visibile(page.getByText('Come vuoi suonare')));
+
+  await page.getByRole('button', { name: 'Inizia' }).first().click({ delay: 60 });
+  await page.waitForTimeout(2200);
+  passo('il brano importato si puo suonare', await visibile(page.getByLabel('DO4')));
+  passo('lo spartito mostra il brano importato', await visibile(page.getByLabel('Pentagramma')));
+
+  await page.getByRole('button', { name: 'Esci' }).first().click({ delay: 60 });
+  await page.waitForTimeout(1500);
+
+  // Il brano deve sopravvivere a un riavvio: e' salvato sul dispositivo.
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1800);
+  passo('il brano importato resta dopo il riavvio',
+    await visibile(page.getByText('I miei brani')) &&
+    await visibile(page.getByText('prova importazione').first()));
 } catch (error) {
   passo('esecuzione senza eccezioni', false, String(error).split('\n')[0]);
 }

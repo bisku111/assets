@@ -1,4 +1,5 @@
 import { getRepositories } from '../adapters/repositories';
+import { importedSongs } from '../adapters/storage/importedSongs';
 import {
   evaluateAchievements, levelForXp, sessionXp, todayIso, updateStreak,
   type AchievementState,
@@ -61,6 +62,21 @@ function messaggioDi(error: unknown): string {
   return 'Qualcosa non ha funzionato. Riprova fra un momento.';
 }
 
+/**
+ * Aggiunge alla libreria un brano importato da un file dell'utente.
+ * Resta su questo dispositivo: non viene mai caricato da nessuna parte.
+ */
+export async function addImportedSong(song: Song): Promise<void> {
+  await importedSongs.add(song);
+  await loadCatalog();
+}
+
+/** Toglie dalla libreria un brano importato. */
+export async function removeImportedSong(songId: string): Promise<void> {
+  await importedSongs.remove(songId);
+  await loadCatalog();
+}
+
 /** Avvio: carica sessione, profilo, catalogo e progressi. */
 export async function bootstrap(): Promise<void> {
   const repos = getRepositories();
@@ -85,16 +101,20 @@ export async function bootstrap(): Promise<void> {
  */
 export async function loadCatalog(): Promise<void> {
   const repos = getRepositories();
+  // I brani importati dall'utente vivono solo sul dispositivo: si
+  // aggiungono al catalogo qualunque sia la sua provenienza, e se la
+  // loro lettura fallisce il catalogo resta comunque utilizzabile.
+  const importati = await importedSongs.list().catch(() => []);
   try {
     const [songs, artists] = await Promise.all([repos.catalog.listSongs(), repos.catalog.listArtists()]);
-    appStore.setState({ songs, artists, error: null });
+    appStore.setState({ songs: [...songs, ...importati], artists, error: null });
   } catch (error) {
     const { fallbackCatalog } = await import('../adapters/repositories');
     const [songs, artists] = await Promise.all([
       fallbackCatalog.listSongs(), fallbackCatalog.listArtists(),
     ]);
     appStore.setState({
-      songs, artists,
+      songs: [...songs, ...importati], artists,
       error: `${messaggioDi(error)} Intanto trovi i brani già disponibili sul dispositivo.`,
     });
   }

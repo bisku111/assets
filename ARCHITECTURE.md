@@ -95,6 +95,7 @@ La tastiera virtuale non è un ripiego cosmetico: implementa la stessa
 │   │   ├── coach/              # decisioni didattiche + frasi in italiano
 │   │   ├── learning/           # progressione 50→100%, avanzamento a sezioni
 │   │   ├── notation/           # pentagramma, armature, diteggiatura
+│   │   ├── import/             # lettura file MIDI, conversione in brano
 │   │   ├── midi/               # parser byte MIDI, gestione pedale
 │   │   ├── dsp/                # YIN, tracciamento note, calibrazione latenza
 │   │   ├── gamification/       # XP, livelli, striscia, medaglie
@@ -102,7 +103,8 @@ La tastiera virtuale non è un ripiego cosmetico: implementa la stessa
 │   ├── adapters/               # ⬛ implementazioni delle porte
 │   │   ├── midi/               # webMidi | nativeMidi | virtualKeyboard
 │   │   ├── audio/              # webAudio | nativeAudio
-│   │   ├── storage/            # AsyncStorage, repository locale
+│   │   ├── files/              # selettore di file: web | nativo
+│   │   ├── storage/            # AsyncStorage, repository locale, brani importati
 │   │   └── supabase/           # client, repository remoto
 │   ├── features/               # UI per dominio (home, catalogo, player…)
 │   ├── ui/                     # design system: tema, Text, Button, tastiera
@@ -288,6 +290,77 @@ BPM riempirebbe tutto lo schermo.
 **Si disegna solo quello che serve.** Un brano per sola mano destra non ha un
 rigo di basso vuoto, e isolando una mano l'altro rigo sparisce: su un portatile
 quei cinquanta pixel sono quelli che mancano alla tastiera.
+
+---
+
+## 6ter. Importare un brano dai file dell'utente
+
+### Cosa si sa fare e cosa no
+
+| Sorgente | Stato | Perché |
+|---|---|---|
+| File MIDI (.mid) | ✅ implementato | Le note sono già scritte nel file: il lavoro è leggerle senza sbagliare i tempi |
+| MusicXML | ⛔ non implementato | Porta anche mani e diteggiatura: è il formato giusto da aggiungere dopo. Serve un parser XML, che oggi non è fra le dipendenze |
+| MP3, registrazioni, video, link | ⛔ **non risolvibile qui** | Richiede separazione delle sorgenti e trascrizione polifonica: un modello dedicato lato server, non codice a bordo. Dichiarato all'utente nella schermata stessa |
+
+La schermata di importazione dice questo in testa, prima di chiedere un
+file. Lasciare che l'utente lo scopra caricando un mp3 sarebbe una
+funzione finta.
+
+### Le tre decisioni che il file non contiene
+
+Un file MIDI dice **quali note e quando**. Non dice quale parte è il
+pianoforte, quale mano suona cosa, né dove finisce una frase. Sono tre
+decisioni prese con criteri dichiarati, tutte modificabili dall'utente:
+
+1. **Quale traccia.** Strumento General MIDI della famiglia pianoforte
+   (program 0–7), oppure nome della traccia; il canale 10 è batteria per
+   definizione dello standard e viene sempre escluso. Se nessuna traccia
+   si dichiara pianoforte si importa comunque quello che c'è, dicendolo.
+2. **Quale mano.** Con due tracce vincono i nomi (`Right`/`Left`/
+   `Destra`…), altrimenti la traccia più acuta è la destra. Con una
+   traccia sola si divide per altezza, e la soglia suggerita è quella
+   che separa meglio le note in due gruppi — criterio di Otsu su un
+   istogramma di altezze. È un criterio, non una verità: l'utente lo
+   sposta di un semitono alla volta.
+3. **Dove tagliare le sezioni.** Blocchi di battute intere (8, 4 o 2
+   secondo la lunghezza). Servono perché ripetere, rallentare e isolare
+   una mano funzionano per sezione.
+
+### Quello che si fa al materiale, e si dichiara
+
+- **Allineamento alla griglia** (semicrome per impostazione predefinita).
+  Se il file è la registrazione di un'esecuzione i tempi non sono
+  esatti, e senza allineamento lo spartito diventa illeggibile. Cambia
+  leggermente il ritmo scritto, quindi è una scelta visibile e
+  disattivabile.
+- **Silenzio iniziale tolto** fino alla battuta.
+- **Note doppie fuse**: lo stesso tasto raddoppiato su due tracce è una
+  nota sola per chi suona; tenerle separate farebbe contare un errore a
+  ogni ripetizione.
+- **Note fuori dagli 88 tasti scartate**, e contate nel resoconto.
+- **Nessuna diteggiatura**: nel file non c'è, e inventarla sarebbe un
+  dato falso. Sui brani importati i numeri delle dita semplicemente non
+  compaiono.
+- **Nessun cambio di tempo perso**: i tick diventano millisecondi
+  seguendo tutta la mappa dei tempi. Con il solo tempo iniziale, un
+  brano che rallenta finirebbe secondi fuori sincrono, e l'allievo si
+  sentirebbe dire che sbaglia quando sbaglia il software.
+
+### Dove finiscono
+
+I brani importati hanno licenza `user_import` e **non sono nell'elenco
+degli stati servibili**: restano nell'archivio locale del dispositivo,
+non vengono caricati da nessuna parte, non entrano nel catalogo. È la
+distinzione che tiene in piedi la funzione senza toccare i diritti di
+nessuno: un file che l'utente possiede, studiato da lui, sul suo
+dispositivo.
+
+Il lettore di file MIDI è provato su byte costruiti a mano (running
+status, note spente con intensità zero, SysEx, tracce troncate,
+divisione SMPTE, mappa dei tempi): un parser binario non si verifica a
+occhio su un file vero, perché quando si rompe non si sa quale byte sia
+stato.
 
 ---
 

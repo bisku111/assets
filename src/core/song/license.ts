@@ -20,12 +20,24 @@ export function isSongServable(song: Song, today: Date = new Date()): boolean {
   return isLicenseServable(song.license, today);
 }
 
+/**
+ * Brano importato dall'utente.
+ *
+ * Si suona sul dispositivo di chi l'ha importato, ma non è contenuto
+ * del progetto: non va caricato, non va condiviso, non entra nel
+ * catalogo. È la distinzione che tiene legale la funzione di importo.
+ */
+export function isPrivateImport(song: Song): boolean {
+  return song.license.status === 'user_import';
+}
+
 /** Etichetta leggibile, mostrata nella scheda del brano. */
 export function licenseLabelIt(license: SongLicense): string {
   switch (license.status) {
     case 'original': return 'Brano originale Maestro';
     case 'public_domain': return 'Pubblico dominio';
     case 'cleared': return `Su licenza di ${license.owner ?? 'avente diritto'}`;
+    case 'user_import': return 'Importato da te, solo su questo dispositivo';
     case 'pending': return 'In attesa di licenza';
     case 'expired': return 'Licenza scaduta';
     case 'blocked': return 'Non disponibile';
