@@ -117,7 +117,10 @@ try {
   await page.waitForTimeout(1500);
 
   // ---- 1. Primo avvio -------------------------------------------------
-  passo('la schermata di benvenuto compare', await visibile(page.getByText('Impara il pianoforte')));
+  // Non si cerca "Impara il pianoforte": quel testo compare anche nel
+  // <title> della pagina, che e' nascosto e farebbe fallire il controllo
+  // per il motivo sbagliato.
+  passo('la schermata di benvenuto compare', await visibile(page.getByText('con le canzoni italiane')));
 
   await page.getByRole('button', { name: 'Inizia subito' }).first().click({ delay: 60 });
   await page.waitForTimeout(1200);
