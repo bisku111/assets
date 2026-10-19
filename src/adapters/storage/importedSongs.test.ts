@@ -1,4 +1,4 @@
-import { ImportedSongStore, MAX_IMPORTED_SONGS } from './importedSongs';
+import { emptyMeta, ImportedSongStore, MAX_IMPORTED_SONGS } from './importedSongs';
 import { MemoryStore } from './keyValue';
 import type { Song } from '../../core/song/types';
 
@@ -30,28 +30,28 @@ describe('libreria dei brani importati', () => {
 
   it('salva e rilegge', async () => {
     const libreria = new ImportedSongStore(new MemoryStore());
-    await libreria.add(brano('uno'));
+    await libreria.add(brano('uno'), emptyMeta());
     expect((await libreria.list()).map((s) => s.id)).toEqual(['uno']);
   });
 
   it('mette il più recente per primo e non duplica', async () => {
     const libreria = new ImportedSongStore(new MemoryStore());
-    await libreria.add(brano('uno'));
-    await libreria.add(brano('due'));
-    await libreria.add(brano('uno'));
+    await libreria.add(brano('uno'), emptyMeta());
+    await libreria.add(brano('due'), emptyMeta());
+    await libreria.add(brano('uno'), emptyMeta());
     expect((await libreria.list()).map((s) => s.id)).toEqual(['uno', 'due']);
   });
 
   it('toglie un brano', async () => {
     const libreria = new ImportedSongStore(new MemoryStore());
-    await libreria.add(brano('uno'));
+    await libreria.add(brano('uno'), emptyMeta());
     await libreria.remove('uno');
     expect(await libreria.list()).toEqual([]);
   });
 
   it('non cresce oltre il limite', async () => {
     const libreria = new ImportedSongStore(new MemoryStore());
-    for (let i = 0; i < MAX_IMPORTED_SONGS + 5; i++) await libreria.add(brano(`b${i}`));
+    for (let i = 0; i < MAX_IMPORTED_SONGS + 5; i++) await libreria.add(brano(`b${i}`), emptyMeta());
     expect(await libreria.list()).toHaveLength(MAX_IMPORTED_SONGS);
   });
 
@@ -59,8 +59,42 @@ describe('libreria dei brani importati', () => {
     const store = new MemoryStore();
     const rotto = brano('rotto');
     rotto.arrangements[0]!.notes = []; // arrangiamento senza note
-    await store.set('maestro.importedSongs', JSON.stringify([rotto, brano('buono')]));
+    await store.set('maestro.importedSongs', JSON.stringify([
+      { song: rotto, meta: emptyMeta() }, { song: brano('buono'), meta: emptyMeta() },
+    ]));
     expect((await new ImportedSongStore(store).list()).map((s) => s.id)).toEqual(['buono']);
+  });
+
+  it('conserva come è stato importato un brano', async () => {
+    const libreria = new ImportedSongStore(new MemoryStore());
+    await libreria.add(brano('uno'), {
+      ...emptyMeta(), sourceName: 'mio.mxl', sourceFormat: 'mxl', quantizeDivision: 16,
+    });
+    expect(await libreria.getMeta('uno')).toMatchObject({ sourceName: 'mio.mxl', sourceFormat: 'mxl' });
+  });
+
+  it('legge anche i brani salvati dalla versione precedente', async () => {
+    // Le prime versioni salvavano brani nudi, senza dati di importazione.
+    const store = new MemoryStore();
+    await store.set('maestro.importedSongs', JSON.stringify([brano('vecchio')]));
+    const libreria = new ImportedSongStore(store);
+    expect((await libreria.list()).map((s) => s.id)).toEqual(['vecchio']);
+    // Non si inventa come era stato importato: i dati restano vuoti.
+    expect(await libreria.getMeta('vecchio')).toEqual(emptyMeta());
+  });
+
+  it('riscrive l intera libreria per il ripristino da backup', async () => {
+    const libreria = new ImportedSongStore(new MemoryStore());
+    await libreria.add(brano('vecchio'), emptyMeta());
+    await libreria.replaceAll([{ song: brano('nuovo'), meta: emptyMeta() }]);
+    expect((await libreria.list()).map((s) => s.id)).toEqual(['nuovo']);
+  });
+
+  it('svuota la libreria', async () => {
+    const libreria = new ImportedSongStore(new MemoryStore());
+    await libreria.add(brano('uno'), emptyMeta());
+    await libreria.clear();
+    expect(await libreria.list()).toEqual([]);
   });
 
   it('sopravvive a un archivio corrotto', async () => {

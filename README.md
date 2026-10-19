@@ -210,9 +210,12 @@ Elenco onesto. Niente è simulato con dati finti.
 | MIDI e microfono su **iOS/Android** | ⛔ richiedono il modulo nativo `piano-io` (ARCHITECTURE.md §7.3). L'app lo dichiara all'utente e propone la tastiera a schermo |
 | Percorso didattico in 6 lezioni, a sblocco progressivo | ✅ |
 | Travature fra le crome sul pentagramma | ⛔ non implementate: le crome portano la codetta singola, che è scrittura corretta ma meno compatta |
-| Importare un brano da un file **MIDI** (.mid) | ✅ tracce di pianoforte riconosciute, mani separate, sezioni automatiche, brano suonabile come gli altri. Resta sul dispositivo |
-| Importare da **MP3, registrazione, video o link** | ⛔ non implementato e non previsto a bordo: serve separazione delle sorgenti e trascrizione polifonica. L'app lo dichiara nella schermata di importazione invece di provarci |
-| Importare da **MusicXML** | ⛔ non ancora: è il formato che porta anche mani e diteggiatura, ed è il prossimo passo naturale |
+| Importare un brano da un file **MIDI** (.mid) | ✅ tracce di pianoforte riconosciute, mani separate, sezioni automatiche, brano suonabile come gli altri |
+| Importare da **MusicXML** (.musicxml, .xml) | ✅ conserva titolo, autore, tonalità, metro, battute, pentagrammi, mani, accordi, legature di valore e **diteggiature originali** |
+| Importare da **MusicXML compresso** (.mxl) | ✅ archivio ZIP letto con protezione da percorsi ostili e bombe di decompressione |
+| Schermata di revisione prima di importare | ✅ tracce, mani, soglia di divisione, allineamento, anteprima delle prime battute e riepilogo di cosa entrerà |
+| **Backup** della libreria personale (.maestro) | ✅ offline, con progressi collegati; duplicati mai sovrascritti in silenzio |
+| Importare da **MP3, registrazione, video o link** | ⛔ non implementato e non previsto a bordo: serve separazione delle sorgenti e trascrizione polifonica. L'app riconosce i file audio dai byte e lo dichiara invece di provarci |
 | Pagamenti | ⛔ non implementati. Schema e gating pronti, manca l'SDK di billing |
 | Accompagnamento audio ("suona con la base") | ⛔ non implementato: servono registrazioni, che il repository non contiene. Le quattro modalità di studio ci sono |
 | Calibrazione guidata della latenza | ✅ metronomo + otto battiti; click udibile su web, impulso tattile su mobile |

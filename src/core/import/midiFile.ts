@@ -1,3 +1,7 @@
+import { tickToMsFor, type TempoChange, type TimeSignature } from './document';
+
+export type { TempoChange, TimeSignature };
+
 /**
  * Lettura di un file MIDI standard (SMF).
  *
@@ -36,19 +40,6 @@ export interface MidiTrack {
   channels: number[];
 }
 
-export interface TempoChange {
-  tick: number;
-  /** Microsecondi per semiminima. */
-  usPerQuarter: number;
-}
-
-export interface TimeSignature {
-  tick: number;
-  numerator: number;
-  /** Già risolto: 4 = semiminima, 8 = croma. */
-  denominator: number;
-}
-
 export interface MidiFile {
   format: number;
   ticksPerQuarter: number;
@@ -56,9 +47,6 @@ export interface MidiFile {
   tempoMap: TempoChange[];
   timeSignatures: TimeSignature[];
 }
-
-/** 500000 µs = 120 BPM: è il valore che lo standard impone in assenza di indicazioni. */
-const DEFAULT_US_PER_QUARTER = 500_000;
 
 /**
  * Un file più grande di così non è un brano da studiare: è un errore
@@ -305,41 +293,7 @@ function decodeAscii(data: Uint8Array): string {
   return String.fromCharCode(...data).replace(/\0+$/, '').trim();
 }
 
-/**
- * Converte i tick in millisecondi seguendo tutti i cambi di tempo.
- *
- * Non basta il primo tempo del file: un brano che rallenta alla fine,
- * letto con un tempo solo, finirebbe diversi secondi fuori sincrono, e
- * l'allievo si sentirebbe dire che sbaglia quando sbaglia il software.
- */
+/** Conversione dei tick in millisecondi: la logica sta nel modello intermedio. */
 export function tickToMs(file: MidiFile): (tick: number) => number {
-  const cambi = file.tempoMap.length > 0
-    ? file.tempoMap
-    : [{ tick: 0, usPerQuarter: DEFAULT_US_PER_QUARTER }];
-  if ((cambi[0] as TempoChange).tick > 0) {
-    cambi.unshift({ tick: 0, usPerQuarter: DEFAULT_US_PER_QUARTER });
-  }
-
-  // Millisecondi accumulati fino all'inizio di ogni segmento: si calcola
-  // una volta sola, così la conversione di una nota è O(log n).
-  const msAllInizio: number[] = [0];
-  for (let i = 1; i < cambi.length; i++) {
-    const prima = cambi[i - 1] as TempoChange;
-    const ora = cambi[i] as TempoChange;
-    const durata = ((ora.tick - prima.tick) * prima.usPerQuarter) / file.ticksPerQuarter / 1000;
-    msAllInizio.push((msAllInizio[i - 1] as number) + durata);
-  }
-
-  return (tick: number) => {
-    let lo = 0;
-    let hi = cambi.length - 1;
-    while (lo < hi) {
-      const mid = Math.ceil((lo + hi) / 2);
-      if ((cambi[mid] as TempoChange).tick <= tick) lo = mid;
-      else hi = mid - 1;
-    }
-    const segmento = cambi[lo] as TempoChange;
-    const extra = ((tick - segmento.tick) * segmento.usPerQuarter) / file.ticksPerQuarter / 1000;
-    return (msAllInizio[lo] as number) + extra;
-  };
+  return tickToMsFor(file);
 }

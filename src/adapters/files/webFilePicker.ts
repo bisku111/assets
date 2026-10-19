@@ -1,5 +1,5 @@
 import type { FilePickerPort, PickedFile } from '../../core/ports/filePicker';
-import { MIDI_EXTENSIONS } from '../../core/ports/filePicker';
+import { SCORE_EXTENSIONS } from '../../core/ports/filePicker';
 
 /**
  * Selettore di file nel browser.
@@ -14,15 +14,13 @@ import { MIDI_EXTENSIONS } from '../../core/ports/filePicker';
  * sempre e l'interfaccia resterebbe a "sto leggendo".
  */
 export class WebFilePicker implements FilePickerPort {
-  readonly accepts = MIDI_EXTENSIONS;
-
-  pick(): Promise<PickedFile | null> {
+  pick(accepts: readonly string[] = SCORE_EXTENSIONS): Promise<PickedFile | null> {
     if (typeof document === 'undefined') return Promise.resolve(null);
 
     return new Promise<PickedFile | null>((resolve) => {
       const input = document.createElement('input');
       input.type = 'file';
-      input.accept = [...MIDI_EXTENSIONS, 'audio/midi', 'audio/x-midi'].join(',');
+      input.accept = accepts.join(',');
       input.style.display = 'none';
 
       let risolto = false;

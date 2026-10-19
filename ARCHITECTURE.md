@@ -95,7 +95,9 @@ La tastiera virtuale non è un ripiego cosmetico: implementa la stessa
 │   │   ├── coach/              # decisioni didattiche + frasi in italiano
 │   │   ├── learning/           # progressione 50→100%, avanzamento a sezioni
 │   │   ├── notation/           # pentagramma, armature, diteggiatura
-│   │   ├── import/             # lettura file MIDI, conversione in brano
+│   │   ├── import/             # MIDI, MusicXML, .mxl → modello unico → brano
+│   │   ├── backup/             # formato .maestro, duplicati, ripristino
+│   │   ├── text/               # decodifica UTF-8 senza dipendenze
 │   │   ├── midi/               # parser byte MIDI, gestione pedale
 │   │   ├── dsp/                # YIN, tracciamento note, calibrazione latenza
 │   │   ├── gamification/       # XP, livelli, striscia, medaglie
@@ -295,72 +297,113 @@ quei cinquanta pixel sono quelli che mancano alla tastiera.
 
 ## 6ter. Importare un brano dai file dell'utente
 
+### L'imbuto: un solo modello musicale
+
+```
+file → lettore del formato → ImportDocument → brano → validazione → archivio
+```
+
+`core/import/document.ts` è il punto in cui i formati convergono. Un MIDI e un
+MusicXML producono **lo stesso oggetto**, e da lì in poi il codice è uno solo:
+scelta delle parti, divisione delle mani, allineamento, sezioni, fusione delle
+note doppie, costruzione del brano. Senza questo strato ci sarebbero due motori
+musicali paralleli da tenere d'accordo, che è il modo più sicuro di farli
+divergere.
+
+Il tempo nel modello intermedio è in **tick musicali**, non in millisecondi: è
+l'unica unità in cui si possono allineare le note a una griglia e tagliare
+sezioni su battute intere. I millisecondi si calcolano alla fine, seguendo
+tutta la mappa dei tempi.
+
 ### Cosa si sa fare e cosa no
 
-| Sorgente | Stato | Perché |
+| Sorgente | Stato | Note |
 |---|---|---|
-| File MIDI (.mid) | ✅ implementato | Le note sono già scritte nel file: il lavoro è leggerle senza sbagliare i tempi |
-| MusicXML | ⛔ non implementato | Porta anche mani e diteggiatura: è il formato giusto da aggiungere dopo. Serve un parser XML, che oggi non è fra le dipendenze |
-| MP3, registrazioni, video, link | ⛔ **non risolvibile qui** | Richiede separazione delle sorgenti e trascrizione polifonica: un modello dedicato lato server, non codice a bordo. Dichiarato all'utente nella schermata stessa |
-
-La schermata di importazione dice questo in testa, prima di chiedere un
-file. Lasciare che l'utente lo scopra caricando un mp3 sarebbe una
-funzione finta.
+| MIDI (.mid) | ✅ | Note, tempi, cambi di tempo, tracce, strumenti |
+| MusicXML (.musicxml, .xml) | ✅ | In più: titolo, autore, tonalità, metro, battute, pentagrammi, mani, accordi, pause, alterazioni, legature di valore, **diteggiature originali** |
+| MusicXML compresso (.mxl) | ✅ | Archivio ZIP letto con controlli di sicurezza |
+| MP3, registrazioni, video, link | ⛔ **non risolvibile qui** | Richiede separazione delle sorgenti e trascrizione polifonica: un modello dedicato lato server. L'app riconosce i formati audio dai byte e lo dichiara |
 
 ### Le tre decisioni che il file non contiene
 
-Un file MIDI dice **quali note e quando**. Non dice quale parte è il
-pianoforte, quale mano suona cosa, né dove finisce una frase. Sono tre
-decisioni prese con criteri dichiarati, tutte modificabili dall'utente:
+Un file dice **quali note e quando**. Non sempre dice quale parte è il
+pianoforte, quale mano suona cosa, né dove finisce una frase.
 
-1. **Quale traccia.** Strumento General MIDI della famiglia pianoforte
-   (program 0–7), oppure nome della traccia; il canale 10 è batteria per
-   definizione dello standard e viene sempre escluso. Se nessuna traccia
-   si dichiara pianoforte si importa comunque quello che c'è, dicendolo.
-2. **Quale mano.** Con due tracce vincono i nomi (`Right`/`Left`/
-   `Destra`…), altrimenti la traccia più acuta è la destra. Con una
-   traccia sola si divide per altezza, e la soglia suggerita è quella
-   che separa meglio le note in due gruppi — criterio di Otsu su un
-   istogramma di altezze. È un criterio, non una verità: l'utente lo
-   sposta di un semitono alla volta.
-3. **Dove tagliare le sezioni.** Blocchi di battute intere (8, 4 o 2
-   secondo la lunghezza). Servono perché ripetere, rallentare e isolare
-   una mano funzionano per sezione.
+1. **Quale parte.** Strumento General MIDI della famiglia pianoforte (0–7) o
+   nome della parte; il canale 10 è batteria per definizione dello standard e
+   viene sempre escluso.
+2. **Quale mano.** Se il file la dichiara (pentagramma 1 e 2 del MusicXML)
+   **vince sempre il file**. Altrimenti: due parti diventano una per mano, e
+   una parte sola si divide per altezza con la soglia che separa meglio le
+   note in due gruppi (criterio di Otsu su un istogramma di altezze).
+3. **Dove tagliare le sezioni.** Blocchi di battute intere (8, 4 o 2 secondo
+   la lunghezza), perché ripetere, rallentare e isolare una mano funzionano
+   per sezione.
+
+Nessuna viene presa in silenzio: la schermata **"Controlla il brano prima di
+importarlo"** le mostra tutte, le lascia cambiare e aggiorna l'anteprima —
+che usa lo stesso pentagramma del tutorial, non un disegno diverso.
 
 ### Quello che si fa al materiale, e si dichiara
 
-- **Allineamento alla griglia** (semicrome per impostazione predefinita).
-  Se il file è la registrazione di un'esecuzione i tempi non sono
-  esatti, e senza allineamento lo spartito diventa illeggibile. Cambia
-  leggermente il ritmo scritto, quindi è una scelta visibile e
-  disattivabile.
-- **Silenzio iniziale tolto** fino alla battuta.
-- **Note doppie fuse**: lo stesso tasto raddoppiato su due tracce è una
-  nota sola per chi suona; tenerle separate farebbe contare un errore a
-  ogni ripetizione.
-- **Note fuori dagli 88 tasti scartate**, e contate nel resoconto.
-- **Nessuna diteggiatura**: nel file non c'è, e inventarla sarebbe un
-  dato falso. Sui brani importati i numeri delle dita semplicemente non
-  compaiono.
-- **Nessun cambio di tempo perso**: i tick diventano millisecondi
-  seguendo tutta la mappa dei tempi. Con il solo tempo iniziale, un
-  brano che rallenta finirebbe secondi fuori sincrono, e l'allievo si
-  sentirebbe dire che sbaglia quando sbaglia il software.
+Allineamento opzionale alla griglia; silenzio iniziale tolto fino alla
+battuta; note doppie fuse (lo stesso tasto raddoppiato è una nota sola per chi
+suona); note legate di valore unite in un attacco solo; note fuori dagli 88
+tasti scartate e contate; **nessuna diteggiatura inventata**. Quello che il
+modello non sa rappresentare — dinamiche, articolazioni, pedale, ritornelli,
+abbellimenti, testo cantato — viene **elencato all'utente**, non perso in
+silenzio.
+
+### Sicurezza dei formati che arrivano da fuori
+
+**XML.** Il lettore in `core/import/xml.ts` è scritto a mano per una ragione
+di sicurezza, non di gusto: il modo più solido di non essere vulnerabili a XXE
+è **non implementare affatto** le entità esterne. Non esiste codice che
+risolva un `SYSTEM` o un `PUBLIC`, quindi non c'è niente da ingannare. Un
+DOCTYPE che le dichiari viene rifiutato, non ignorato; un'entità non
+predefinita fa fallire la lettura; limiti espliciti su dimensione, profondità,
+numero di nodi e di attributi. La "bomba delle entità" non ha effetto perché
+nessuna entità viene espansa.
+
+**ZIP (.mxl).** L'indice dell'archivio — che non è compresso — si legge a
+mano, e **si decide cosa estrarre prima di estrarlo**: nomi (niente percorsi
+assoluti, niente `..`, niente backslash), dimensione dichiarata, totale
+dichiarato, numero di file e **rapporto di compressione**, che è la firma di
+una bomba zip e si vede dall'indice senza allocare niente. L'inflate è
+`fflate`, l'unica dipendenza aggiunta; la politica di sicurezza è codice
+nostro. Lo ZIP64 viene dichiarato non leggibile invece di essere interpretato
+male.
 
 ### Dove finiscono
 
-I brani importati hanno licenza `user_import` e **non sono nell'elenco
-degli stati servibili**: restano nell'archivio locale del dispositivo,
-non vengono caricati da nessuna parte, non entrano nel catalogo. È la
-distinzione che tiene in piedi la funzione senza toccare i diritti di
-nessuno: un file che l'utente possiede, studiato da lui, sul suo
-dispositivo.
+Licenza `user_import`, **volutamente fuori dagli stati servibili**: restano
+nell'archivio locale, non vengono caricati da nessuna parte, non entrano nel
+catalogo. La Home tiene separate **"Brani Maestro"** e **"I miei brani"**.
 
-Il lettore di file MIDI è provato su byte costruiti a mano (running
-status, note spente con intensità zero, SysEx, tracce troncate,
-divisione SMPTE, mappa dei tempi): un parser binario non si verifica a
-occhio su un file vero, perché quando si rompe non si sa quale byte sia
-stato.
+---
+
+## 6quater. Backup e trasferimento
+
+I brani importati vivono solo sul dispositivo, e un telefono si perde. Il
+backup è l'unico modo di portarli altrove **senza caricarli da nessuna parte**:
+tutto resta dentro un file che l'utente possiede.
+
+- **Formato** `maestro-backup-v1`, estensione `.maestro`, JSON leggibile e
+  versionato di proposito: un archivio binario illeggibile sarebbe un formato
+  ostaggio.
+- **Contenuto**: brani, metadati, struttura musicale già normalizzata, *come*
+  erano stati importati (parti, soglia delle mani, allineamento) e i
+  **progressi collegati**, presi dal loro archivio invece che duplicati.
+- **Prima di applicare** si mostra: data, versione, numero di brani, errori,
+  incompatibilità e duplicati. Uno schema più recente viene dichiarato
+  illeggibile invece di essere interpretato male; un brano danneggiato viene
+  saltato dicendolo, senza perdere gli altri.
+- **Un duplicato non viene mai sovrascritto in silenzio**: la politica è una
+  scelta esplicita fra *mantieni esistente*, *importa come copia*,
+  *sostituisci*. Il duplicato si riconosce anche quando l'identificatore è
+  diverso, perché reimportando lo stesso file si ottiene un id nuovo ma la
+  stessa musica: l'impronta è `slug|durata|numero di note`.
+- Dalla scheda di un brano personale si esporta **il singolo brano**.
 
 ---
 

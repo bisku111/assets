@@ -1,17 +1,36 @@
 import { parseMidiFile } from './midiFile';
-import { analyseMidi, buildImportedSong, suggestHandSplit, type ImportOptions } from './toSong';
+import { midiToDocument } from './fromMidi';
+import {
+  analyseDocument, buildImportedSong, suggestHandSplit,
+  type ImportOptions, type PartRole,
+} from './toSong';
 import { isSongServable } from '../song/license';
 import { validateSong } from '../song/validate';
 import { indicazioneTempo, nomeTraccia, programma, smf, tempo, traccia } from './__fixtures__/smf';
 
-const OPZIONI: ImportOptions = { title: 'Prova', handSplit: 60, quantizeDivision: 0 };
+/** Tutte le parti importate, mani divise per altezza: l'uso più semplice. */
+const divise = (quante: number, soglia = 60): Partial<ImportOptions> => ({
+  roles: new Array<PartRole>(quante).fill('split'), splitMidi: soglia,
+});
 
 /** 480 tick per semiminima: una battuta di 4/4 sono 1920 tick. */
 const TPQ = 480;
 const BATTUTA = TPQ * 4;
 
+function documento(bytes: Uint8Array) {
+  return midiToDocument(parseMidiFile(bytes));
+}
+
 function importa(bytes: Uint8Array, opzioni: Partial<ImportOptions> = {}) {
-  return buildImportedSong(parseMidiFile(bytes), { ...OPZIONI, ...opzioni });
+  const doc = documento(bytes);
+  const analisi = analyseDocument(doc);
+  return buildImportedSong(doc, {
+    title: 'Prova',
+    roles: analisi.suggestedRoles,
+    splitMidi: analisi.suggestedSplitMidi,
+    quantizeDivision: 0,
+    ...opzioni,
+  });
 }
 
 describe('divisione delle mani suggerita', () => {
@@ -43,23 +62,24 @@ describe('analisi del file', () => {
     // Canale 10 (indice 9): batteria per definizione dello standard.
     const batteria = traccia([{ midi: 38, da: 0, durata: TPQ, canale: 9 }], [...nomeTraccia('Drums')]);
 
-    const analisi = analyseMidi(parseMidiFile(smf([pianoforte, batteria])));
+    const analisi = analyseDocument(documento(smf([pianoforte, batteria])));
     expect(analisi.pianoFound).toBe(true);
-    expect(analisi.suggestedTracks).toEqual([0]);
-    expect(analisi.tracks.find((t) => t.index === 1)?.isDrums).toBe(true);
+    // La batteria viene esclusa, il pianoforte importato.
+    expect(analisi.suggestedRoles).toEqual(['split', 'excluded']);
+    expect(analisi.parts.find((p) => p.index === 1)?.isDrums).toBe(true);
   });
 
   it('dichiara quando nessuna traccia si presenta come pianoforte', () => {
     const archi = traccia([{ midi: 60, da: 0, durata: TPQ }], [...nomeTraccia('Strings'), ...programma(0, 48)]);
-    const analisi = analyseMidi(parseMidiFile(smf([archi])));
+    const analisi = analyseDocument(documento(smf([archi])));
     expect(analisi.pianoFound).toBe(false);
     // Si importa comunque: rifiutare un file valido sarebbe peggio.
-    expect(analisi.suggestedTracks).toEqual([0]);
+    expect(analisi.suggestedRoles).toEqual(['split']);
   });
 
   it('legge tempo e indicazione di tempo del file', () => {
     const t = traccia([{ midi: 60, da: 0, durata: TPQ }], [...tempo(750_000), ...indicazioneTempo(3, 4)]);
-    const analisi = analyseMidi(parseMidiFile(smf([t])));
+    const analisi = analyseDocument(documento(smf([t])));
     expect(analisi.bpm).toBe(80);
     expect(analisi.timeSignature).toEqual([3, 4]);
   });
@@ -70,7 +90,7 @@ describe('divisione delle mani', () => {
     const destra = traccia([{ midi: 48, da: 0, durata: TPQ }], nomeTraccia('Piano Right'));
     const sinistra = traccia([{ midi: 72, da: 0, durata: TPQ }], nomeTraccia('Piano Left'));
 
-    const { song } = importa(smf([destra, sinistra]), { handSplit: 'tracks' });
+    const { song } = importa(smf([destra, sinistra]));
     const note = song.arrangements[0]!.notes;
     // I nomi vincono sull'altezza: qui sono volutamente al contrario.
     expect(note.find((n) => n.midi === 48)?.hand).toBe('right');
@@ -81,7 +101,7 @@ describe('divisione delle mani', () => {
     const bassa = traccia([{ midi: 45, da: 0, durata: TPQ }], nomeTraccia('A'));
     const alta = traccia([{ midi: 76, da: 0, durata: TPQ }], nomeTraccia('B'));
 
-    const { song } = importa(smf([bassa, alta]), { handSplit: 'tracks' });
+    const { song } = importa(smf([bassa, alta]));
     const note = song.arrangements[0]!.notes;
     expect(note.find((n) => n.midi === 76)?.hand).toBe('right');
     expect(note.find((n) => n.midi === 45)?.hand).toBe('left');
@@ -93,8 +113,8 @@ describe('divisione delle mani', () => {
       { midi: 67, da: TPQ, durata: TPQ },
     ], nomeTraccia('Piano'));
 
-    const { song, report } = importa(smf([unica]), { handSplit: 64 });
-    expect(report.handSplitMidi).toBe(64);
+    const { song, report } = importa(smf([unica]), divise(1, 64));
+    expect(report.splitMidiUsed).toBe(64);
     const note = song.arrangements[0]!.notes;
     expect(note.find((n) => n.midi === 48)?.hand).toBe('left');
     expect(note.find((n) => n.midi === 67)?.hand).toBe('right');
@@ -175,7 +195,7 @@ describe('costruzione del brano', () => {
     // Melodia raddoppiata su due tracce: per chi suona è una nota sola.
     const uno = traccia([{ midi: 60, da: 0, durata: BATTUTA }], nomeTraccia('Piano 1'));
     const due = traccia([{ midi: 60, da: TPQ, durata: BATTUTA }], nomeTraccia('Piano 2'));
-    const { song, report } = importa(smf([uno, due]), { handSplit: 48 });
+    const { song, report } = importa(smf([uno, due]), divise(2, 48));
     expect(report.notesMerged).toBe(1);
     expect(song.arrangements[0]!.notes).toHaveLength(1);
     // La nota fusa dura fino alla fine della più lunga.
@@ -198,8 +218,8 @@ describe('costruzione del brano', () => {
   });
 
   it('dichiara nel resoconto cosa ha fatto', () => {
-    const { report } = brano({ quantizeDivision: 16 });
-    expect(report).toMatchObject({ quantized: true, handSplitMidi: 60, notesOutOfRange: 0 });
+    const { report } = brano({ quantizeDivision: 16, ...divise(1, 60) });
+    expect(report).toMatchObject({ quantized: true, splitMidiUsed: 60, notesOutOfRange: 0 });
     expect(report.notesImported).toBe(6);
     expect(report.sections).toBeGreaterThan(0);
   });

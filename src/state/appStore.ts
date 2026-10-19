@@ -1,5 +1,10 @@
 import { getRepositories } from '../adapters/repositories';
-import { importedSongs } from '../adapters/storage/importedSongs';
+import { importedSongs, type ImportedEntry } from '../adapters/storage/importedSongs';
+import { createFileExport } from '../adapters/fileExport';
+import {
+  backupFileName, buildBackup, mergeBackup, serializeBackup,
+  type BackupEntry, type DuplicatePolicy, type ImportMeta,
+} from '../core/backup/format';
 import {
   evaluateAchievements, levelForXp, sessionXp, todayIso, updateStreak,
   type AchievementState,
@@ -66,8 +71,8 @@ function messaggioDi(error: unknown): string {
  * Aggiunge alla libreria un brano importato da un file dell'utente.
  * Resta su questo dispositivo: non viene mai caricato da nessuna parte.
  */
-export async function addImportedSong(song: Song): Promise<void> {
-  await importedSongs.add(song);
+export async function addImportedSong(song: Song, meta: ImportMeta): Promise<void> {
+  await importedSongs.add(song, meta);
   await loadCatalog();
 }
 
@@ -75,6 +80,120 @@ export async function addImportedSong(song: Song): Promise<void> {
 export async function removeImportedSong(songId: string): Promise<void> {
   await importedSongs.remove(songId);
   await loadCatalog();
+}
+
+// ---------------------------------------------------------------------
+// Backup della libreria personale
+// ---------------------------------------------------------------------
+
+/**
+ * Raccoglie brani personali e progressi collegati.
+ *
+ * I progressi stanno nel loro archivio, indicizzati per arrangiamento:
+ * si prendono da lì invece di duplicarli, così il backup riflette
+ * davvero lo stato dell'app e non una copia che potrebbe divergere.
+ */
+async function raccogliVoci(soloSongId?: string): Promise<BackupEntry[]> {
+  const voci: ImportedEntry[] = await importedSongs.listEntries();
+  const scelte = soloSongId ? voci.filter((v) => v.song.id === soloSongId) : voci;
+  const userId = appStore.getState().session?.userId;
+
+  let progressi: SongProgressRecord[] = [];
+  if (userId) {
+    try {
+      progressi = await getRepositories().progress.listProgress(userId);
+    } catch {
+      // Un backup senza progressi è meglio di nessun backup.
+      progressi = [];
+    }
+  }
+
+  return scelte.map((v) => ({
+    song: v.song,
+    meta: v.meta,
+    progress: progressi.filter((p) => p.songId === v.song.id),
+  }));
+}
+
+export interface BackupSaved {
+  name: string;
+  songs: number;
+  delivered: boolean;
+  where: string | null;
+}
+
+/** Esporta tutta la libreria personale in un file. */
+export async function exportLibraryBackup(): Promise<BackupSaved> {
+  const voci = await raccogliVoci();
+  if (voci.length === 0) throw new UserFacingError('Non hai ancora nessun brano da salvare.');
+
+  const backup = buildBackup(voci);
+  const name = backupFileName(backup.createdAt);
+  const esito = await createFileExport().save(name, serializeBackup(backup), 'application/json');
+  return { name, songs: voci.length, delivered: esito.delivered, where: esito.where };
+}
+
+/** Esporta un solo brano personale. */
+export async function exportSingleSong(songId: string): Promise<BackupSaved> {
+  const voci = await raccogliVoci(songId);
+  if (voci.length === 0) throw new UserFacingError('Questo brano non è fra i tuoi brani importati.');
+
+  const backup = buildBackup(voci);
+  const titolo = (voci[0] as BackupEntry).song.slug;
+  const name = `${titolo}.maestro`;
+  const esito = await createFileExport().save(name, serializeBackup(backup), 'application/json');
+  return { name, songs: 1, delivered: esito.delivered, where: esito.where };
+}
+
+export interface RestoreOutcome {
+  added: number;
+  replaced: number;
+  kept: number;
+  copied: number;
+  restoredProgress: number;
+}
+
+/**
+ * Applica un backup già letto e ispezionato.
+ *
+ * La politica sui duplicati arriva da fuori: non si sovrascrive mai
+ * niente senza che l'utente l'abbia scelto.
+ */
+export async function restoreBackup(
+  entries: readonly BackupEntry[],
+  policy: DuplicatePolicy,
+): Promise<RestoreOutcome> {
+  const esistenti = await raccogliVoci();
+  const esito = mergeBackup(esistenti, entries, policy);
+
+  await importedSongs.replaceAll(esito.entries.map((e) => ({ song: e.song, meta: e.meta })));
+
+  // I progressi tornano al loro posto solo per i brani davvero entrati.
+  const idPresenti = new Set(esito.entries.map((e) => e.song.id));
+  const userId = appStore.getState().session?.userId;
+  let ripristinati = 0;
+  if (userId) {
+    const progress = getRepositories().progress;
+    for (const voce of esito.entries) {
+      if (!idPresenti.has(voce.song.id)) continue;
+      for (const record of voce.progress) {
+        try {
+          await progress.saveProgress(userId, record);
+          ripristinati++;
+        } catch {
+          // Un progresso perso non deve far fallire il ripristino.
+        }
+      }
+    }
+  }
+
+  await loadCatalog();
+  if (userId) await loadUserData(userId);
+
+  return {
+    added: esito.added, replaced: esito.replaced, kept: esito.kept,
+    copied: esito.copied, restoredProgress: ripristinati,
+  };
 }
 
 /** Avvio: carica sessione, profilo, catalogo e progressi. */

@@ -72,6 +72,7 @@ export default function RootLayout() {
         <Stack.Screen name="calibrate" options={{ presentation: 'modal' }} />
         <Stack.Screen name="midi-setup" options={{ presentation: 'modal' }} />
         <Stack.Screen name="import" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="backup" options={{ presentation: 'modal' }} />
         {/* Il tutorial copre tutto: niente barre, niente distrazioni. */}
         <Stack.Screen name="play/[id]" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
       </Stack>

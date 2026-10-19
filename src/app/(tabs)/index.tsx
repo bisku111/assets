@@ -129,13 +129,14 @@ export default function Home() {
 
         <HomeRow
           title="I miei brani"
-          subtitle="Importati dai tuoi file MIDI, solo su questo dispositivo"
-          empty="Non hai ancora importato niente. Tocca qui sotto per aggiungere un file MIDI."
+          subtitle="Importati dai tuoi file MIDI e MusicXML, solo su questo dispositivo"
+          empty="Non hai ancora importato niente. Tocca qui sotto per aggiungere un file."
         >
           {importati.map(scheda)}
         </HomeRow>
-        <View style={{ paddingHorizontal: spacing.lg, marginTop: -spacing.sm, marginBottom: spacing.lg }}>
+        <View style={{ paddingHorizontal: spacing.lg, marginTop: -spacing.sm, marginBottom: spacing.lg, gap: spacing.xs }}>
           <Button label="Aggiungi un brano da un file" variant="ghost" onPress={() => router.push('/import')} />
+          <Button label="Backup e trasferimento" variant="ghost" onPress={() => router.push('/backup')} />
         </View>
 
         <HomeRow title="A due mani" subtitle="Destra e sinistra insieme fin dal primo livello">

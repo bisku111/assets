@@ -112,6 +112,25 @@ async function toccaVisibile(etichetta, { hold = 90 } = {}) {
 
 const visibile = async (locator) => locator.first().isVisible().catch(() => false);
 
+/** Apre il selettore e consegna un file di prova. */
+async function scegliFile(nomeFixture) {
+  const percorso = resolve('scripts/fixtures', nomeFixture);
+  const [selettore] = await Promise.all([
+    page.waitForEvent('filechooser', { timeout: 10000 }),
+    toccaVisibile('Scegli un file'),
+  ]);
+  await selettore.setFiles(percorso);
+  await page.waitForTimeout(1500);
+}
+
+/** Legge il valore accanto a un'etichetta del riepilogo. */
+async function valoreRiga(etichetta) {
+  const riga = page.getByText(etichetta, { exact: true }).first();
+  if (!(await riga.isVisible().catch(() => false))) return null;
+  const testo = await riga.evaluate((el) => el.parentElement?.innerText ?? '');
+  return testo.replace(etichetta, '').trim();
+}
+
 try {
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
@@ -293,7 +312,7 @@ try {
   passo('offre di riprovare dopo aver collegato il cavo',
     await visibile(page.getByRole('button', { name: 'Riprova' })));
 
-  // ---- 12. Importazione di un brano da un file MIDI ---------------------
+  // ---- 12. Importazione da MIDI, con revisione ---------------------------
   // Si riparte dalla Home: la schermata di importazione si raggiunge da li'.
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1800);
@@ -301,30 +320,51 @@ try {
   await toccaVisibile('Aggiungi un brano da un file');
   await page.waitForTimeout(900);
   passo('la schermata di importazione si apre', await visibile(page.getByText('COSA POSSO IMPORTARE')));
-  // Dichiarare il limite e' parte della funzione, non una nota a margine.
   passo('dichiara di non saper leggere un audio',
     await visibile(page.getByText(/MP3, registrazioni, video o link/)));
 
-  const fixtureMidi = resolve('scripts/fixtures/prova-importazione.mid');
-  const [selettore] = await Promise.all([
-    page.waitForEvent('filechooser', { timeout: 10000 }),
-    toccaVisibile('Scegli un file MIDI'),
-  ]);
-  await selettore.setFiles(fixtureMidi);
-  await page.waitForTimeout(1500);
+  await scegliFile('prova-importazione.mid');
+  passo('il file MIDI viene letto davvero',
+    await visibile(page.getByText('Controlla il brano prima di importarlo')));
+  passo('elenca le tracce trovate', await visibile(page.getByText(/Piano Right/)));
+  passo('mostra l anteprima delle prime battute',
+    await visibile(page.getByLabel('Anteprima del brano')));
+  passo('riepiloga cosa importera', await visibile(page.getByText('COSA IMPORTERÒ')));
 
-  passo('il file MIDI viene letto davvero', await visibile(page.getByText('COSA HO TROVATO')));
-  passo('riconosce le due tracce di pianoforte', await visibile(page.getByText(/Piano Right/)));
-  passo('conta le note trovate', await visibile(page.getByText(/10 note ·/)));
+  // Escludere una traccia deve cambiare il riepilogo, non solo l'aspetto.
+  const destraPrima = await valoreRiga('Mano destra');
+  await toccaVisibile('Escludi');
+  await page.waitForTimeout(500);
+  const destraDopo = await valoreRiga('Mano destra');
+  passo('escludere una traccia cambia il riepilogo',
+    destraPrima !== destraDopo && /^0 /.test(destraDopo ?? ''), `${destraPrima} -> ${destraDopo}`);
 
-  await toccaVisibile('Aggiungi alla mia libreria');
+  await toccaVisibile('Destra');
+  await page.waitForTimeout(500);
+  passo('rimetterla cambia di nuovo il riepilogo', (await valoreRiga('Mano destra')) === destraPrima);
+
+  // Con una traccia a due mani compare la soglia di divisione.
+  await toccaVisibile('Due mani');
+  await page.waitForTimeout(500);
+  passo('su due mani compare la soglia di divisione',
+    await visibile(page.getByText(/Divisione suggerita:/)));
+  const sogliaPrima = await page.getByText(/Da .+ in su suona la destra/).first().innerText();
+  await toccaVisibile('+ semitono');
+  await page.waitForTimeout(400);
+  const sogliaDopo = await page.getByText(/Da .+ in su suona la destra/).first().innerText();
+  passo('la soglia si puo spostare di un semitono', sogliaPrima !== sogliaDopo,
+    `${sogliaPrima} -> ${sogliaDopo}`);
+  await toccaVisibile('Destra');
+  await page.waitForTimeout(400);
+
+  await toccaVisibile('Importa in Maestro');
   await page.waitForTimeout(1500);
-  passo('il brano entra nella libreria', await visibile(page.getByText(/e' nella tua libreria|è nella tua libreria/)));
-  passo('dice come lo ha preparato', await visibile(page.getByText(/note in \d+ sezion/)));
+  passo('il brano entra nella libreria', await visibile(page.getByText(/nella tua libreria/)));
 
   await toccaVisibile('Apri il brano');
   await page.waitForTimeout(1800);
   passo('la scheda del brano importato si apre', await visibile(page.getByText('Come vuoi suonare')));
+  passo('il brano importato si puo esportare', await visibile(page.getByText('Esporta brano')));
 
   await page.getByRole('button', { name: 'Inizia' }).first().click({ delay: 60 });
   await page.waitForTimeout(2200);
@@ -340,6 +380,132 @@ try {
   passo('il brano importato resta dopo il riavvio',
     await visibile(page.getByText('I miei brani')) &&
     await visibile(page.getByText('prova importazione').first()));
+
+  // ---- 13. Importazione da MusicXML --------------------------------------
+  await toccaVisibile('Aggiungi un brano da un file');
+  await page.waitForTimeout(900);
+  await scegliFile('prova-importazione.musicxml');
+  passo('il MusicXML viene letto',
+    await visibile(page.getByText('Controlla il brano prima di importarlo')));
+  passo('dal MusicXML arriva il titolo scritto nel file',
+    (await page.getByLabel('Titolo').first().inputValue()) === 'Prova MusicXML');
+  passo('dal MusicXML arriva anche l autore',
+    (await page.getByLabel('Autore').first().inputValue()) === 'Maestro Originals');
+  passo('riconosce la tonalita dichiarata nel file',
+    await visibile(page.getByText(/· G ·|· G$/)));
+  passo('le mani sono gia scritte nel file',
+    await visibile(page.getByText('Le mani sono già scritte nel file')));
+  passo('conserva le diteggiature originali',
+    await visibile(page.getByText('Diteggiature dal file')));
+
+  await toccaVisibile('Importa in Maestro');
+  await page.waitForTimeout(1500);
+  await toccaVisibile('Apri il brano');
+  await page.waitForTimeout(1800);
+  passo('la scheda del brano MusicXML si apre', await visibile(page.getByText('Come vuoi suonare')));
+  await page.getByRole('button', { name: 'Inizia' }).first().click({ delay: 60 });
+  await page.waitForTimeout(2200);
+  passo('il brano MusicXML si suona', await visibile(page.getByLabel('Pentagramma')));
+  // La diteggiatura del file deve arrivare fino ai tasti.
+  const scritteXml = await page.locator('svg text').allTextContents();
+  passo('la diteggiatura del file arriva sui tasti',
+    scritteXml.some((t) => /^[1-5]$/.test(t.trim())), scritteXml.filter((t) => t.trim()).slice(0, 3).join(' '));
+  await page.getByRole('button', { name: 'Esci' }).first().click({ delay: 60 });
+  await page.waitForTimeout(1200);
+
+  // ---- 14. Importazione da MXL (MusicXML compresso) ----------------------
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1800);
+  await toccaVisibile('Aggiungi un brano da un file');
+  await page.waitForTimeout(900);
+  await scegliFile('prova-importazione.mxl');
+  passo('l archivio .mxl viene estratto e letto',
+    await visibile(page.getByText('MusicXML compresso')));
+  await toccaVisibile('Importa in Maestro');
+  await page.waitForTimeout(1500);
+  await toccaVisibile('Apri il brano');
+  await page.waitForTimeout(1800);
+  await page.getByRole('button', { name: 'Inizia' }).first().click({ delay: 60 });
+  await page.waitForTimeout(2200);
+  passo('il brano estratto dall archivio si suona', await visibile(page.getByLabel('DO4')));
+  await page.getByRole('button', { name: 'Esci' }).first().click({ delay: 60 });
+  await page.waitForTimeout(1200);
+
+  // ---- 15. Backup: esporta, perdi i dati, ripristina ---------------------
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1800);
+  await toccaVisibile('Backup e trasferimento');
+  await page.waitForTimeout(900);
+  passo('la schermata di backup si apre', await visibile(page.getByText('Esporta tutta la libreria')));
+
+  const [scaricato] = await Promise.all([
+    page.waitForEvent('download', { timeout: 15000 }),
+    toccaVisibile('Esporta la libreria'),
+  ]);
+  const percorsoBackup = await scaricato.path();
+  passo('il backup viene scaricato',
+    Boolean(percorsoBackup) && /\.maestro$/.test(scaricato.suggestedFilename()),
+    scaricato.suggestedFilename());
+
+  // Si simula un dispositivo che ha perso i dati locali dei brani.
+  await page.evaluate(() => {
+    for (const chiave of Object.keys(window.localStorage)) {
+      if (chiave.includes('importedSongs')) window.localStorage.removeItem(chiave);
+    }
+  });
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1800);
+  passo('dopo la perdita dei dati la libreria e vuota',
+    await visibile(page.getByText('Non hai ancora importato niente.')));
+
+  await toccaVisibile('Backup e trasferimento');
+  await page.waitForTimeout(900);
+  const [selettoreBackup] = await Promise.all([
+    page.waitForEvent('filechooser', { timeout: 10000 }),
+    toccaVisibile('Scegli un file di backup'),
+  ]);
+  await selettoreBackup.setFiles(percorsoBackup);
+  await page.waitForTimeout(1500);
+  passo('il backup viene ispezionato prima di applicarlo',
+    await visibile(page.getByText('COSA CONTIENE IL BACKUP')));
+  passo('dichiara data, versione e numero di brani',
+    await visibile(page.getByText(/versione 1 · 3 brani/)));
+
+  await toccaVisibile('Ripristina');
+  await page.waitForTimeout(1800);
+  passo('il ripristino dichiara cosa ha fatto',
+    await visibile(page.getByText('Ripristino completato')));
+
+  // Si riapre l'app da capo: il ripristino deve essere finito su disco,
+  // non solo nello stato in memoria.
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2200);
+  const titoliRipristinati = await page.getByText(/Prova MusicXML|prova importazione/).allTextContents();
+  passo('i brani sono tornati dopo il ripristino', titoliRipristinati.length >= 2,
+    `${titoliRipristinati.length} titoli ritrovati`);
+
+  // ---- 16. Duplicati: mai sovrascritti in silenzio -----------------------
+  await toccaVisibile('Backup e trasferimento');
+  await page.waitForTimeout(900);
+  const [selettoreBis] = await Promise.all([
+    page.waitForEvent('filechooser', { timeout: 10000 }),
+    toccaVisibile('Scegli un file di backup'),
+  ]);
+  await selettoreBis.setFiles(percorsoBackup);
+  await page.waitForTimeout(1500);
+  passo('riconosce i brani gia presenti',
+    await visibile(page.getByText(/GIÀ NELLA TUA LIBRERIA/)));
+  passo('offre le tre scelte sui duplicati',
+    await visibile(page.getByText('Mantieni esistente')) &&
+    await visibile(page.getByText('Importa come copia')) &&
+    await visibile(page.getByText('Sostituisci', { exact: true })));
+
+  await toccaVisibile('Importa come copia');
+  await page.waitForTimeout(400);
+  await toccaVisibile('Ripristina');
+  await page.waitForTimeout(1800);
+  passo('importare come copia non sovrascrive niente',
+    await visibile(page.getByText(/3 come copia/)));
 } catch (error) {
   passo('esecuzione senza eccezioni', false, String(error).split('\n')[0]);
 }

@@ -12,11 +12,16 @@ export interface PickedFile {
 }
 
 export interface FilePickerPort {
-  /** Estensioni accettate, per il messaggio all'utente. */
-  readonly accepts: readonly string[];
-  /** null se l'utente annulla: non è un errore. */
-  pick(): Promise<PickedFile | null>;
+  /**
+   * Apre il selettore. `accepts` sono le estensioni proposte: il
+   * selettore del sistema le usa come filtro, non come garanzia, quindi
+   * il formato si riconosce comunque dai byte.
+   * null se l'utente annulla: non è un errore.
+   */
+  pick(accepts?: readonly string[]): Promise<PickedFile | null>;
 }
 
-/** Quello che il selettore deve accettare oggi. */
-export const MIDI_EXTENSIONS = ['.mid', '.midi'] as const;
+/** Spartiti leggibili. */
+export const SCORE_EXTENSIONS = ['.mid', '.midi', '.musicxml', '.xml', '.mxl'] as const;
+/** Backup della libreria personale. */
+export const BACKUP_EXTENSIONS = ['.maestro', '.json'] as const;

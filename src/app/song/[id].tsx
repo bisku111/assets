@@ -3,13 +3,13 @@ import { ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MODE_DESCRIPTION_IT, MODE_LABEL_IT, type PracticeMode } from '../../core/engine/matcher';
-import { licenseLabelIt } from '../../core/song/license';
+import { isPrivateImport, licenseLabelIt } from '../../core/song/license';
 import { availableDifficulties, formatDuration, resolveArrangement } from '../../core/song/query';
 import {
-  DIFFICULTY_LABEL_IT, SECTION_LABEL_IT, type DifficultyKey,
+  DIFFICULTY_LABEL_IT, SECTION_LABEL_IT, type DifficultyKey, type Song,
 } from '../../core/song/types';
 import { suggestedRateFor } from '../../core/learning/progression';
-import { useAppStore } from '../../state/appStore';
+import { exportSingleSong, removeImportedSong, useAppStore } from '../../state/appStore';
 import { PremiumBadge } from '../../features/catalog/SongCard';
 import { Button } from '../../ui/components/Button';
 import { Card } from '../../ui/components/Card';
@@ -168,12 +168,74 @@ export default function SongDetail() {
             hint={`${sezione ? SECTION_LABEL_IT[arrangement?.sections.find((s) => s.id === sezione)?.kind ?? 'verse'] : 'Tutto il brano'} · ${velocita}% di velocità`}
           />
 
+          {isPrivateImport(song) ? <AzioniBranoPersonale song={song} /> : null}
+
           <Text variant="caption" tone="faint" center style={{ marginTop: spacing.lg }}>
             {licenseLabelIt(song.license)}
           </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+/**
+ * Cosa si può fare con un brano importato.
+ *
+ * Esportarlo è il modo di portarlo su un altro dispositivo senza
+ * caricarlo da nessuna parte. Toglierlo chiede conferma: è materiale
+ * dell'utente e potrebbe non avere altre copie.
+ */
+function AzioniBranoPersonale({ song }: { song: Song }) {
+  const router = useRouter();
+  const [stato, setStato] = useState<{ tipo: 'fermo' | 'lavoro' | 'conferma'; messaggio?: string }>({ tipo: 'fermo' });
+
+  const esporta = async () => {
+    setStato({ tipo: 'lavoro' });
+    try {
+      const esito = await exportSingleSong(song.id);
+      setStato({
+        tipo: 'fermo',
+        messaggio: esito.delivered
+          ? `Esportato come ${esito.name}.`
+          : `Il file è qui: ${esito.where ?? esito.name}.`,
+      });
+    } catch (errore) {
+      setStato({
+        tipo: 'fermo',
+        messaggio: errore instanceof Error ? errore.message : 'Non sono riuscito a esportarlo.',
+      });
+    }
+  };
+
+  const togli = async () => {
+    await removeImportedSong(song.id);
+    router.replace('/');
+  };
+
+  return (
+    <Sezione titolo="Questo brano è tuo">
+      <Button label="Esporta brano" variant="ghost" onPress={() => void esporta()} />
+      {stato.tipo === 'conferma' ? (
+        <>
+          <Text variant="caption" tone="warning" style={{ marginTop: spacing.sm }}>
+            Lo tolgo dalla tua libreria. Se non ne hai un backup, non si recupera.
+          </Text>
+          <Button label="Sì, toglilo" variant="ghost" onPress={() => void togli()} style={{ marginTop: spacing.xs }} />
+          <Button label="Annulla" variant="ghost" onPress={() => setStato({ tipo: 'fermo' })} style={{ marginTop: spacing.xs }} />
+        </>
+      ) : (
+        <Button
+          label="Togli dalla libreria"
+          variant="ghost"
+          onPress={() => setStato({ tipo: 'conferma' })}
+          style={{ marginTop: spacing.xs }}
+        />
+      )}
+      {stato.messaggio ? (
+        <Text variant="caption" tone="muted" style={{ marginTop: spacing.sm }}>{stato.messaggio}</Text>
+      ) : null}
+    </Sezione>
   );
 }
 
