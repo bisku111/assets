@@ -48,11 +48,14 @@ const sinistra = traccia(
 writeFileSync(fuori('prova-importazione.mid'), Buffer.from(smf([destra, sinistra], { division: TPQ })));
 
 // ---- MusicXML: due pentagrammi, diteggiature, legatura, accordo ------
+// Le due battute stanno fra |: :|, così la prova end-to-end verifica
+// anche che i ritornelli vengano aperti davvero.
 const SPARTITO = partitura([{
   id: 'P1', name: 'Piano', program: 1,
   battute: [
     battuta({
       number: 1, divisions: 2, staves: 2, beats: 4, fifths: 1, tempo: 96,
+      apreRitornello: true,
       contenuto:
         nota({ step: 'G', octave: 4, duration: 2, staff: 1, finger: 1 }) +
         nota({ step: 'B', octave: 4, duration: 2, staff: 1, finger: 3 }) +
@@ -63,6 +66,7 @@ const SPARTITO = partitura([{
     }),
     battuta({
       number: 2,
+      chiudeRitornello: true,
       contenuto:
         nota({ step: 'D', octave: 5, duration: 2, staff: 1, finger: 5, tie: 'stop' }) +
         nota({ step: 'B', octave: 4, duration: 2, staff: 1, finger: 3 }) +

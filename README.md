@@ -212,6 +212,7 @@ Elenco onesto. Niente è simulato con dati finti.
 | Travature fra le crome sul pentagramma | ⛔ non implementate: le crome portano la codetta singola, che è scrittura corretta ma meno compatta |
 | Importare un brano da un file **MIDI** (.mid) | ✅ tracce di pianoforte riconosciute, mani separate, sezioni automatiche, brano suonabile come gli altri |
 | Importare da **MusicXML** (.musicxml, .xml) | ✅ conserva titolo, autore, tonalità, metro, battute, pentagrammi, mani, accordi, legature di valore e **diteggiature originali** |
+| **Ritornelli** `\|: :\|` e volte (1ª, 2ª) | ✅ aperti davvero: le battute ripetute si suonano due volte, non una. Da capo e dal segno non sono aperti, e viene dichiarato |
 | Importare da **MusicXML compresso** (.mxl) | ✅ archivio ZIP letto con protezione da percorsi ostili e bombe di decompressione |
 | Schermata di revisione prima di importare | ✅ tracce, mani, soglia di divisione, allineamento, anteprima delle prime battute e riepilogo di cosa entrerà |
 | **Backup** della libreria personale (.maestro) | ✅ offline, con progressi collegati; duplicati mai sovrascritti in silenzio |

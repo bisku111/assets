@@ -267,30 +267,62 @@ try {
   await page.waitForTimeout(1200);
   passo('la calibrazione si apre dal profilo', await visibile(page.getByText('Calibrazione del ritardo')));
 
-  // Otto battiti a 80 bpm piu' quattro di preparazione: si batte a tempo
-  // sulla tastiera a schermo e si controlla che la misura esca.
+  // Otto battiti piu' quattro di preparazione: si batte a tempo sulla
+  // tastiera a schermo e si controlla che la misura esca.
+  //
+  // Ci si aggancia al METRONOMO DELL'APP, non all'orologio del test.
+  // Contare i battiti con waitForTimeout a partire dal click presume
+  // che l'app parta nello stesso istante: con un bundle pesante parte
+  // qualche centinaio di millisecondi dopo, tutti i colpi slittano
+  // oltre la finestra di mezzo battito e il test falliva a intermittenza
+  // per colpa propria, non dell'app. La schermata pubblica il battito
+  // corrente: si batte quando lo dice lei.
   await page.getByRole('button', { name: 'Avvia' }).first().click({ delay: 60 });
-  const intervallo = 60_000 / 80;
-  const hold = 50;
+
   const tasto = await page.getByLabel('DO4').first().boundingBox();
   if (!tasto) throw new Error('tastiera di calibrazione non trovata');
   const centro = { x: tasto.x + tasto.width / 2, y: tasto.y + tasto.height / 2 };
 
-  await page.waitForTimeout(intervallo * 4);
-  for (let i = 0; i < 8; i++) {
-    await page.mouse.move(centro.x, centro.y);
+  const BATTITI = 8;
+  let battutiAlVolo = 0;
+  await page.mouse.move(centro.x, centro.y);
+
+  for (let i = 1; i <= BATTITI; i++) {
+    // L'attesa si valuta DENTRO la pagina, a ogni fotogramma: un
+    // locator interrogato da fuori risponde con un ritardo variabile,
+    // e un colpo che arriva oltre mezzo battito viene attribuito al
+    // battito successivo, che risulta già occupato. Era così che si
+    // perdevano due colpi su otto.
+    // Si legge un solo attributo, non il testo della pagina:
+    // `document.body.innerText` forza il layout di tastiera e SVG a
+    // ogni fotogramma, e quel costo allungava i fotogrammi quanto
+    // basta a far arrivare un colpo oltre mezzo battito. L'attesa non
+    // deve disturbare cio' che sta misurando.
+    const arrivato = await page.waitForFunction(
+      (n) => document.querySelector('[aria-label^="Battito "]')
+        ?.getAttribute('aria-label') === `Battito ${n}`,
+      i, { polling: 'raf', timeout: 8000 },
+    ).then(() => true).catch(() => false);
+    if (!arrivato) break;
+
+    // Il contatto deve durare: un tocco istantaneo non riceve il
+    // responder di React Native Web e non suona nessuna nota.
     await page.mouse.down();
-    await page.waitForTimeout(hold);
+    await page.waitForTimeout(50);
     await page.mouse.up();
-    await page.waitForTimeout(intervallo - hold);
+    battutiAlVolo++;
   }
-  await page.waitForTimeout(1300);
+  passo('il metronomo scandisce tutti gli otto battiti', battutiAlVolo === BATTITI,
+    `${battutiAlVolo}/${BATTITI}`);
+  await page.waitForTimeout(1500);
 
   // Il controllo deve distinguere una misura vera da uno stato di
   // fallimento: "0 ms" accompagnato da "non ho registrato abbastanza
   // note" e' un fallimento, e un test che lo accetta non serve a nulla.
-  const registrate = await page.getByText(/8 note registrate/).first().isVisible().catch(() => false);
-  passo('la calibrazione registra tutti i colpi', registrate);
+  // Un passo che fallisce deve dire cosa ha visto, non solo che è rosso.
+  const testoRegistrate = await page.getByText(/note registrate/).first()
+    .innerText().catch(() => '(nessun contatore a schermo)');
+  passo('la calibrazione registra tutti i colpi', /^8 /.test(testoRegistrate), testoRegistrate);
 
   const nonAbbastanza = await page.getByText(/abbastanza note/).first().isVisible().catch(() => false);
   passo('la calibrazione produce una misura valida', !nonAbbastanza);
@@ -327,6 +359,7 @@ try {
   passo('il file MIDI viene letto davvero',
     await visibile(page.getByText('Controlla il brano prima di importarlo')));
   passo('elenca le tracce trovate', await visibile(page.getByText(/Piano Right/)));
+  passo('conta le note trovate', await visibile(page.getByText(/10 note ·/)));
   passo('mostra l anteprima delle prime battute',
     await visibile(page.getByLabel('Anteprima del brano')));
   passo('riepiloga cosa importera', await visibile(page.getByText('COSA IMPORTERÒ')));
@@ -360,6 +393,7 @@ try {
   await toccaVisibile('Importa in Maestro');
   await page.waitForTimeout(1500);
   passo('il brano entra nella libreria', await visibile(page.getByText(/nella tua libreria/)));
+  passo('dice come lo ha preparato', await visibile(page.getByText(/note in \d+ sezion/)));
 
   await toccaVisibile('Apri il brano');
   await page.waitForTimeout(1800);
@@ -397,6 +431,10 @@ try {
     await visibile(page.getByText('Le mani sono già scritte nel file')));
   passo('conserva le diteggiature originali',
     await visibile(page.getByText('Diteggiature dal file')));
+  // Senza aprire i ritornelli l'allievo riceverebbe meta' del brano
+  // che ha davanti sulla carta.
+  passo('apre i ritornelli invece di importare meta brano',
+    await visibile(page.getByText(/2 battute scritte diventano 4/)));
 
   await toccaVisibile('Importa in Maestro');
   await page.waitForTimeout(1500);

@@ -1,6 +1,7 @@
 import type { ImportDocument, ImportNote, ImportPart, TempoChange, TimeSignature } from './document';
 import { DEFAULT_US_PER_QUARTER } from './document';
 import type { Hand } from '../song/types';
+import { emptyMarks, expandRepeats, mergeMarks, type MeasureMarks } from './repeats';
 import {
   child, childrenNamed, hasChild, numberOf, parseXml, textOf,
   XmlError, type XmlElement,
@@ -76,11 +77,18 @@ export function parseMusicXml(source: string): ImportDocument {
   let totale = 0;
 
   const parts: ImportPart[] = [];
+  const parti = childrenNamed(radice, 'part');
 
-  childrenNamed(radice, 'part').forEach((parteXml, indice) => {
+  // I ritornelli riguardano tutto il brano: si leggono da tutte le
+  // parti e si uniscono, perché molti file li segnano su un solo
+  // pentagramma. L'ordine di esecuzione è lo stesso per tutti.
+  const ritornelli = expandRepeats(mergeMarks(parti.map(leggiSegni)));
+  notices.push(...ritornelli.notices);
+
+  parti.forEach((parteXml, indice) => {
     const id = parteXml.attrs.id ?? `P${indice + 1}`;
     const info = strumenti.get(id);
-    const lette = leggiParte(parteXml, {
+    const lette = leggiParte(parteXml, ritornelli.order, {
       tempoMap, timeSignatures, perse,
       onKey: (k) => { if (keySignature === null) keySignature = k; },
       onGrace: () => { graziose++; },
@@ -191,6 +199,45 @@ function leggiElencoParti(radice: XmlElement): Map<string, InfoParte> {
 // Lettura di una parte
 // ---------------------------------------------------------------------
 
+/**
+ * Legge i segni di ritornello dalle stanghette di una parte.
+ *
+ * `|:` e `:|` stanno dentro `<barline>`, insieme alle volte. Qui si
+ * raccolgono soltanto: aprirli è compito di `expandRepeats`, che non
+ * sa niente di XML e si prova da sola.
+ */
+function leggiSegni(parteXml: XmlElement): MeasureMarks[] {
+  return childrenNamed(parteXml, 'measure').map((battuta) => {
+    const segni = emptyMarks();
+    for (const barline of childrenNamed(battuta, 'barline')) {
+      const repeat = child(barline, 'repeat');
+      if (repeat) {
+        if (repeat.attrs.direction === 'forward') segni.forwardRepeat = true;
+        if (repeat.attrs.direction === 'backward') {
+          segni.backwardRepeat = true;
+          const volte = Number.parseInt(repeat.attrs.times ?? '', 10);
+          if (Number.isFinite(volte) && volte >= 2) segni.repeatTimes = volte;
+        }
+      }
+
+      const ending = child(barline, 'ending');
+      if (ending) {
+        const tipo = ending.attrs.type;
+        if (tipo === 'start') {
+          const numeri = (ending.attrs.number ?? '1')
+            .split(/[,\s]+/)
+            .map((n) => Number.parseInt(n, 10))
+            .filter((n) => Number.isFinite(n) && n > 0);
+          segni.endingStart = numeri.length > 0 ? numeri : [1];
+        }
+        // "discontinue" è la volta aperta a destra: finisce lo stesso qui.
+        if (tipo === 'stop' || tipo === 'discontinue') segni.endingStop = true;
+      }
+    }
+    return segni;
+  });
+}
+
 interface ContestoParte {
   tempoMap: TempoChange[];
   timeSignatures: TimeSignature[];
@@ -206,13 +253,31 @@ interface NotaInLavorazione extends ImportNote {
   tieStop: boolean;
 }
 
-function leggiParte(parteXml: XmlElement, ctx: ContestoParte): ImportNote[] {
+function leggiParte(
+  parteXml: XmlElement,
+  ordine: readonly number[],
+  ctx: ContestoParte,
+): ImportNote[] {
   let divisions = 1;
   let staves = 1;
   let battutaTick = 0;
+  // Movimenti per battuta secondo l'indicazione metrica corrente:
+  // serve a far avanzare una parte anche quando la sua battuta è
+  // vuota (vedi sotto).
+  let battitiPerBattuta = 4;
   const note: NotaInLavorazione[] = [];
 
-  for (const battuta of childrenNamed(parteXml, 'measure')) {
+  const battute = childrenNamed(parteXml, 'measure');
+  // Si percorre l'ordine di esecuzione, non l'elenco scritto: una
+  // battuta dentro un ritornello passa di qui più di una volta, e ogni
+  // volta le sue note finiscono a un tempo diverso.
+  const giaVista = new Set<number>();
+
+  for (const indice of ordine) {
+    const battuta = battute[indice];
+    if (!battuta) continue;
+    const primaVolta = !giaVista.has(indice);
+    giaVista.add(indice);
     const numero = Number.parseInt(battuta.attrs.number ?? '', 10);
     let posDiv = 0;
     let ultimoInizioDiv = 0;
@@ -243,12 +308,14 @@ function leggiParte(parteXml: XmlElement, ctx: ContestoParte): ImportNote[] {
             ctx.timeSignatures.push({
               tick: inTick(posDiv), numerator: battiti, denominator: valore,
             });
+            battitiPerBattuta = (battiti * 4) / valore;
           }
           break;
         }
 
         case 'direction': {
           leggiTempo(elemento, inTick(posDiv), ctx);
+          segnaliDiRipresa(child(elemento, 'sound'), ctx);
           if (child(elemento, 'direction-type')) {
             const tipo = child(elemento, 'direction-type');
             if (hasChild(tipo, 'dynamics')) ctx.perse.add(SEGNI_DINAMICI);
@@ -259,6 +326,7 @@ function leggiParte(parteXml: XmlElement, ctx: ContestoParte): ImportNote[] {
 
         case 'sound':
           leggiTempoDiretto(elemento, inTick(posDiv), ctx);
+          segnaliDiRipresa(elemento, ctx);
           break;
 
         case 'backup': {
@@ -276,11 +344,14 @@ function leggiParte(parteXml: XmlElement, ctx: ContestoParte): ImportNote[] {
         }
 
         case 'barline':
-          if (hasChild(elemento, 'repeat')) ctx.perse.add(RITORNELLI);
+          // I ritornelli ora si aprono davvero: non c'è più niente da
+          // dichiarare perso qui.
           break;
 
         case 'note': {
-          if (hasChild(elemento, 'grace')) { ctx.onGrace(); break; }
+          // Gli abbellimenti si contano una volta sola, anche se la
+          // battuta viene suonata due volte.
+          if (hasChild(elemento, 'grace')) { if (primaVolta) ctx.onGrace(); break; }
 
           const durata = numberOf(elemento, 'duration') ?? 0;
           const accordo = hasChild(elemento, 'chord');
@@ -333,7 +404,15 @@ function leggiParte(parteXml: XmlElement, ctx: ContestoParte): ImportNote[] {
 
     // La battuta dura quanto la voce più lunga: regge anche le battute
     // di levare e quelle irregolari, che una formula fissa sbaglierebbe.
-    battutaTick += Math.round((maxDiv * MUSICXML_TPQ) / divisions);
+    //
+    // Se però questa parte non ha scritto niente in questa battuta —
+    // capita nei file che omettono le pause — il suo tempo non
+    // avanzerebbe, e da lì in poi le due mani suonerebbero sfasate.
+    // In quel caso vale l'indicazione metrica.
+    const avanzamento = maxDiv > 0
+      ? Math.round((maxDiv * MUSICXML_TPQ) / divisions)
+      : Math.round(battitiPerBattuta * MUSICXML_TPQ);
+    battutaTick += avanzamento;
   }
 
   return uniscileLegate(note);
@@ -343,9 +422,18 @@ const SEGNI_DINAMICI = 'Le indicazioni dinamiche (p, f, crescendo) non vengono c
 const SEGNO_PEDALE = 'Le indicazioni di pedale non vengono conservate: il brano si giudica sull’attacco delle note.';
 const ARTICOLAZIONI = 'Le articolazioni (staccato, accento) non vengono conservate.';
 const LEGATURE_FRASE = 'Le legature di frase non vengono conservate; quelle di valore sì.';
-const RITORNELLI = 'I ritornelli non vengono aperti: il brano viene importato come è scritto, una volta sola.';
+const RIPRESE = 'Da capo, dal segno e coda non vengono aperti: i ritornelli con |: :| sì.';
 const TESTO_CANTATO = 'Il testo cantato non viene importato.';
 const NON_INTONATE = 'Le note non intonate (percussioni) sono state ignorate.';
+
+/** Da capo, dal segno, coda, fine: letti per dichiararli, non aperti. */
+function segnaliDiRipresa(suono: XmlElement | null, ctx: ContestoParte): void {
+  if (!suono) return;
+  const a = suono.attrs;
+  if (a.dacapo || a.dalsegno || a.segno || a.coda || a.tocoda || a.fine) {
+    ctx.perse.add(RIPRESE);
+  }
+}
 
 function leggiTempo(direzione: XmlElement, tick: number, ctx: ContestoParte): void {
   const suono = child(direzione, 'sound');

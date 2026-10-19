@@ -354,3 +354,177 @@ describe('documenti ostili o rotti', () => {
     expect(() => parseMusicXml(enorme)).toThrow(/troppo grande/);
   });
 });
+
+describe('ritornelli aperti davvero', () => {
+  /** Due battute fra |: :|, con una nota riconoscibile per battuta. */
+  const conRitornello = partitura([{
+    id: 'P1', name: 'Piano',
+    battute: [
+      battuta({
+        number: 1, divisions: 1, apreRitornello: true,
+        contenuto: nota({ step: 'C', octave: 4, duration: 4 }),
+      }),
+      battuta({
+        number: 2, chiudeRitornello: true,
+        contenuto: nota({ step: 'D', octave: 4, duration: 4 }),
+      }),
+      battuta({ number: 3, contenuto: nota({ step: 'E', octave: 4, duration: 4 }) }),
+    ],
+  }]);
+
+  it('suona due volte le battute dentro il ritornello', () => {
+    const note = parseMusicXml(conRitornello).parts[0]?.notes ?? [];
+    // DO RE DO RE MI, non DO RE MI.
+    expect(note.map((n) => n.midi)).toEqual([60, 62, 60, 62, 64]);
+  });
+
+  it('colloca la ripetizione nel tempo giusto, non sopra la prima', () => {
+    const note = parseMusicXml(conRitornello).parts[0]?.notes ?? [];
+    expect(note.map((n) => n.startTick)).toEqual([0, Q * 4, Q * 8, Q * 12, Q * 16]);
+  });
+
+  it('conserva il numero di battuta originale anche nella ripetizione', () => {
+    // La seconda esecuzione della battuta 1 resta la battuta 1.
+    const note = parseMusicXml(conRitornello).parts[0]?.notes ?? [];
+    expect(note.map((n) => n.measure)).toEqual([1, 2, 1, 2, 3]);
+  });
+
+  it('dichiara quante battute sono diventate', () => {
+    expect(parseMusicXml(conRitornello).notices.some((n) => /3 battute scritte diventano 5/.test(n)))
+      .toBe(true);
+  });
+
+  it('non dichiara più i ritornelli come persi', () => {
+    const avvisi = parseMusicXml(conRitornello).notices.join(' ');
+    expect(avvisi).not.toMatch(/ritornelli non vengono aperti/i);
+  });
+
+  it('apre prima e seconda volta', () => {
+    // |: 1 [1ª 2 :| [2ª 3 ] 4
+    const xml = partitura([{
+      id: 'P1', name: 'Piano',
+      battute: [
+        battuta({ number: 1, divisions: 1, apreRitornello: true, contenuto: nota({ step: 'C', octave: 4, duration: 4 }) }),
+        battuta({ number: 2, volta: [1], fineVolta: true, chiudeRitornello: true, contenuto: nota({ step: 'D', octave: 4, duration: 4 }) }),
+        battuta({ number: 3, volta: [2], fineVolta: true, contenuto: nota({ step: 'E', octave: 4, duration: 4 }) }),
+        battuta({ number: 4, contenuto: nota({ step: 'F', octave: 4, duration: 4 }) }),
+      ],
+    }]);
+    const note = parseMusicXml(xml).parts[0]?.notes ?? [];
+    // DO RE (1ª volta) · DO MI (2ª volta) · FA
+    expect(note.map((n) => n.midi)).toEqual([60, 62, 60, 64, 65]);
+  });
+
+  it('rispetta un ritornello da tre esecuzioni', () => {
+    const xml = partitura([{
+      id: 'P1', name: 'Piano',
+      battute: [
+        battuta({
+          number: 1, divisions: 1, apreRitornello: true, chiudeRitornello: true, volte: 3,
+          contenuto: nota({ step: 'C', octave: 4, duration: 4 }),
+        }),
+      ],
+    }]);
+    expect(parseMusicXml(xml).parts[0]?.notes).toHaveLength(3);
+  });
+
+  it('tiene insieme le due mani quando si ripete', () => {
+    // Le due mani devono ripetersi nello stesso punto, non sfasarsi.
+    const xml = partitura([{
+      id: 'P1', name: 'Piano',
+      battute: [
+        battuta({
+          number: 1, divisions: 1, staves: 2, apreRitornello: true, chiudeRitornello: true,
+          contenuto:
+            nota({ step: 'G', octave: 4, duration: 4, staff: 1 }) +
+            '<backup><duration>4</duration></backup>' +
+            nota({ step: 'C', octave: 3, duration: 4, staff: 2, voice: 2 }),
+        }),
+      ],
+    }]);
+    const note = parseMusicXml(xml).parts[0]?.notes ?? [];
+    expect(note).toHaveLength(4);
+    const destra = note.filter((n) => n.hand === 'right').map((n) => n.startTick);
+    const sinistra = note.filter((n) => n.hand === 'left').map((n) => n.startTick);
+    expect(destra).toEqual(sinistra);
+  });
+
+  it('legge i segni anche se sono scritti su una parte sola', () => {
+    const battuteConSegni = [
+      battuta({ number: 1, divisions: 1, apreRitornello: true, chiudeRitornello: true, contenuto: nota({ step: 'C', octave: 4, duration: 4 }) }),
+    ];
+    const battuteNude = [
+      battuta({ number: 1, divisions: 1, contenuto: nota({ step: 'G', octave: 2, duration: 4 }) }),
+    ];
+    const xml = partitura([
+      { id: 'P1', name: 'Piano', battute: battuteConSegni },
+      { id: 'P2', name: 'Piano basso', battute: battuteNude },
+    ]);
+    const doc = parseMusicXml(xml);
+    // Entrambe le parti si ripetono, anche quella senza i segni.
+    expect(doc.parts[0]?.notes).toHaveLength(2);
+    expect(doc.parts[1]?.notes).toHaveLength(2);
+  });
+
+  it('dichiara da capo e dal segno invece di fingere di aprirli', () => {
+    const xml = partitura([{
+      id: 'P1', name: 'Piano',
+      battute: [
+        battuta({ number: 1, divisions: 1, contenuto: nota({ duration: 4 }) }),
+        battuta({ number: 2, contenuto: '<direction><sound dacapo="yes"/></direction>' + nota({ duration: 4 }) }),
+      ],
+    }]);
+    expect(parseMusicXml(xml).notices.some((n) => /Da capo, dal segno/.test(n))).toBe(true);
+  });
+});
+
+describe('battute vuote', () => {
+  it('non sfasa le due mani quando una parte salta una battuta', () => {
+    // Alcuni file omettono le pause invece di scriverle. Senza
+    // correttivo la parte vuota non avanzerebbe, e da lì in poi le due
+    // mani suonerebbero una sopra l'altra.
+    const xml = partitura([
+      {
+        id: 'P1', name: 'Piano destra',
+        battute: [
+          battuta({ number: 1, divisions: 1, beats: 4, contenuto: nota({ step: 'C', octave: 5, duration: 4 }) }),
+          battuta({ number: 2, contenuto: nota({ step: 'D', octave: 5, duration: 4 }) }),
+        ],
+      },
+      {
+        id: 'P2', name: 'Piano sinistra',
+        battute: [
+          battuta({ number: 1, divisions: 1, beats: 4, contenuto: '' }),      // battuta vuota
+          battuta({ number: 2, contenuto: nota({ step: 'C', octave: 3, duration: 4 }) }),
+        ],
+      },
+    ]);
+    const doc = parseMusicXml(xml);
+    const destra = doc.parts[0]?.notes ?? [];
+    const sinistra = doc.parts[1]?.notes ?? [];
+    // Il DO grave sta nella seconda battuta, come il RE acuto.
+    expect(sinistra[0]?.startTick).toBe(Q * 4);
+    expect(destra[1]?.startTick).toBe(Q * 4);
+  });
+
+  it('usa l indicazione metrica dichiarata, non quattro quarti fissi', () => {
+    const xml = partitura([
+      {
+        id: 'P1', name: 'Destra',
+        battute: [
+          battuta({ number: 1, divisions: 1, beats: 3, beatType: 4, contenuto: nota({ step: 'C', octave: 5, duration: 3 }) }),
+          battuta({ number: 2, contenuto: nota({ step: 'D', octave: 5, duration: 3 }) }),
+        ],
+      },
+      {
+        id: 'P2', name: 'Sinistra',
+        battute: [
+          battuta({ number: 1, divisions: 1, beats: 3, beatType: 4, contenuto: '' }),
+          battuta({ number: 2, contenuto: nota({ step: 'C', octave: 3, duration: 3 }) }),
+        ],
+      },
+    ]);
+    // Tre movimenti, non quattro.
+    expect(parseMusicXml(xml).parts[1]?.notes[0]?.startTick).toBe(Q * 3);
+  });
+});

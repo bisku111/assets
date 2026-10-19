@@ -55,6 +55,16 @@ export interface BattutaXml {
   beatType?: number;
   tempo?: number;
   contenuto: string;
+  /** `|:` all'inizio della battuta. */
+  apreRitornello?: boolean;
+  /** `:|` alla fine della battuta. */
+  chiudeRitornello?: boolean;
+  /** Esecuzioni totali volute dal `:|`. */
+  volte?: number;
+  /** Numeri della volta che comincia qui. */
+  volta?: number[];
+  /** Qui la volta finisce. */
+  fineVolta?: boolean;
 }
 
 export function battuta(b: BattutaXml): string {
@@ -68,11 +78,23 @@ export function battuta(b: BattutaXml): string {
   }
   if (b.staves !== undefined) attributi.push(`<staves>${b.staves}</staves>`);
 
+  const sinistra: string[] = [];
+  if (b.apreRitornello) sinistra.push('<repeat direction="forward"/>');
+  if (b.volta) sinistra.push(`<ending number="${b.volta.join(',')}" type="start"/>`);
+
+  const destra: string[] = [];
+  if (b.fineVolta) destra.push('<ending type="stop"/>');
+  if (b.chiudeRitornello) {
+    destra.push(`<repeat direction="backward"${b.volte ? ` times="${b.volte}"` : ''}/>`);
+  }
+
   return (
     `<measure number="${b.number}">` +
+    (sinistra.length > 0 ? `<barline location="left">${sinistra.join('')}</barline>` : '') +
     (attributi.length > 0 ? `<attributes>${attributi.join('')}</attributes>` : '') +
     (b.tempo !== undefined ? `<direction><sound tempo="${b.tempo}"/></direction>` : '') +
     b.contenuto +
+    (destra.length > 0 ? `<barline location="right">${destra.join('')}</barline>` : '') +
     '</measure>'
   );
 }

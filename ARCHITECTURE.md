@@ -96,6 +96,7 @@ La tastiera virtuale non è un ripiego cosmetico: implementa la stessa
 │   │   ├── learning/           # progressione 50→100%, avanzamento a sezioni
 │   │   ├── notation/           # pentagramma, armature, diteggiatura
 │   │   ├── import/             # MIDI, MusicXML, .mxl → modello unico → brano
+│   │   │                       #   repeats.ts: apertura dei ritornelli
 │   │   ├── backup/             # formato .maestro, duplicati, ripristino
 │   │   ├── text/               # decodifica UTF-8 senza dipendenze
 │   │   ├── midi/               # parser byte MIDI, gestione pedale
@@ -343,6 +344,30 @@ pianoforte, quale mano suona cosa, né dove finisce una frase.
 Nessuna viene presa in silenzio: la schermata **"Controlla il brano prima di
 importarlo"** le mostra tutte, le lascia cambiare e aggiorna l'anteprima —
 che usa lo stesso pentagramma del tutorial, non un disegno diverso.
+
+### I ritornelli si aprono davvero
+
+Uno spartito non è una sequenza di battute: è una sequenza di battute **più
+le istruzioni per ripercorrerle**. Un file con `|: :|` contiene otto battute e
+se ne suonano sedici. Importarlo senza aprirle darebbe all'allievo metà del
+brano che ha davanti sulla carta — l'unico punto in cui Maestro gli mostrerebbe
+qualcosa di diverso da quello che vede.
+
+`core/import/repeats.ts` calcola **solo l'ordine in cui le battute vanno
+suonate**: un elenco di indici. Non tocca nessuna nota e si prova senza XML.
+Copre `|:`, `:|`, `<repeat times="n">`, le volte (1ª, 2ª, anche lunghe più di
+una battuta o valide per più passaggi), ritornelli consecutivi, e il caso dello
+standard in cui un `:|` senza apertura rimanda all'inizio del brano. Un file in
+cui una volta non si chiude mai viene recuperato invece di far saltare la
+seconda; un file che si richiude su se stesso viene interrotto con un avviso
+invece di riempire la memoria.
+
+I segni si leggono da **tutte le parti e si uniscono**: molti file li scrivono
+su un pentagramma solo, e prendere solo il primo significherebbe perderli.
+
+**Da capo, dal segno, coda e fine non vengono aperti**, e viene dichiarato.
+Sono salti che dipendono da segni sparsi nel documento e da convenzioni meno
+uniformi: fingere di averli aperti sarebbe peggio che dire che non lo sono.
 
 ### Quello che si fa al materiale, e si dichiara
 
