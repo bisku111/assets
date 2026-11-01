@@ -19,11 +19,29 @@ import { handInk } from './theme';
  * teste di nota molto più nitide a questa dimensione.
  */
 
-const GAP = 7;              // distanza fra due righe del rigo
+/**
+ * Quanto è alto un rigo.
+ *
+ * `GAP` è l'unica manopola: tutto il resto del disegno si ridimensiona
+ * dietro, perché chiavi, alterazioni e codette sono tracciati tarati a
+ * mano su un rigo da 7 px e vengono riscalati invece di essere
+ * ridisegnati — riscrivere quei numeri a ogni ritocco di altezza è il
+ * modo sicuro di storpiare una chiave e non accorgersene.
+ */
+const GAP = 10;             // distanza fra due righe del rigo
 const HALF = GAP / 2;       // un mezzo spazio: l'unità verticale di `u`
 const STAFF_H = GAP * 4;
 const PAD = 13;
 const STAFF_GAP = 16;
+
+/** Il rigo su cui sono tarati i tracciati, e il fattore per adattarli. */
+const BASE_GAP = 7;
+const BASE_HALF = BASE_GAP / 2;
+const S = GAP / BASE_GAP;
+
+/** Scala un disegno attorno al suo punto di ancoraggio. */
+const intorno = (x: number, y: number) =>
+  `translate(${x} ${y}) scale(${S}) translate(${-x} ${-y})`;
 
 /**
  * Corsia dei nomi, sotto ogni rigo.
@@ -32,9 +50,15 @@ const STAFF_GAP = 16;
  * lo collega al tasto, invece di contare le righe. Tre righe bastano,
  * gli accordi di questo repertorio non hanno più di tre note per mano.
  */
-const NAME_LANE = 20;
-const NAME_SIZE = 7.5;
-const NAME_LINE = 7.6;
+/*
+ * I nomi sono una didascalia, non la musica: stanno sotto il rigo in
+ * corpo minore perché l'occhio deve cadere sulle teste di nota e
+ * trovarli solo quando li cerca. Prima erano 7.5 px e in un accordo di
+ * tre note facevano una colonna di testo più vistosa dell'accordo.
+ */
+const NAME_LANE = 18;
+const NAME_SIZE = 5.2;
+const NAME_LINE = 5.6;
 const MAX_NAMES = 3;
 
 /**
@@ -56,12 +80,12 @@ function topsOf(clefs: readonly Clef[]): Record<Clef, number> {
   return tops;
 }
 
-const GUTTER = 32;          // colonna delle chiavi, senza armatura
-const ACCIDENTAL_W = 7;     // larghezza di un diesis o bemolle in armatura
+const GUTTER = 32 * S;      // colonna delle chiavi, senza armatura
+const ACCIDENTAL_W = 7 * S; // larghezza di un diesis o bemolle in armatura
 
 /** La colonna si allarga quanto serve: l'armatura non va addosso alla chiave. */
 function gutterWidth(accidentals: number): number {
-  return GUTTER + (accidentals > 0 ? accidentals * ACCIDENTAL_W + 4 : 0);
+  return GUTTER + (accidentals > 0 ? accidentals * ACCIDENTAL_W + 4 * S : 0);
 }
 const INK = '#16161C';
 const PAPER = '#F4F1E8';
@@ -129,13 +153,13 @@ export const StaffView = memo(function StaffView({
             <Line
               key={`${clef}-${u}`}
               x1={0} x2={width} y1={yAt(u, tops[clef])} y2={yAt(u, tops[clef])}
-              stroke={INK} strokeWidth={0.7} opacity={0.5}
+              stroke={INK} strokeWidth={0.7 * S} opacity={0.5}
             />
           )),
         )}
         <Line
           x1={0.5} x2={0.5} y1={primo} y2={ultimo}
-          stroke={INK} strokeWidth={1.4} opacity={0.6}
+          stroke={INK} strokeWidth={1.4 * S} opacity={0.6}
         />
 
         {/* Stanghette di battuta: danno il senso del metro. */}
@@ -143,7 +167,7 @@ export const StaffView = memo(function StaffView({
           <Line
             key={ms}
             x1={xOf(ms)} x2={xOf(ms)} y1={primo} y2={ultimo}
-            stroke={INK} strokeWidth={0.8} opacity={0.22}
+            stroke={INK} strokeWidth={0.8 * S} opacity={0.22}
           />
         ))}
 
@@ -161,7 +185,7 @@ export const StaffView = memo(function StaffView({
         {/* La colonna delle chiavi copre la musica che le passa sotto:
             senza, le note scorrerebbero sopra i simboli di chiave. */}
         <Rect x={0} y={0} width={gutter} height={altezza} fill={PAPER} />
-        <Line x1={gutter} x2={gutter} y1={0} y2={altezza} stroke={INK} strokeWidth={0.6} opacity={0.18} />
+        <Line x1={gutter} x2={gutter} y1={0} y2={altezza} stroke={INK} strokeWidth={0.6 * S} opacity={0.18} />
         {clefs.map((clef) => <Chiave key={clef} clef={clef} top={tops[clef]} />)}
         <Armatura score={score} clefs={clefs} tops={tops} right={gutter - 4} />
 
@@ -191,16 +215,17 @@ function Gruppo({ item, x, top, statuses, waitingIndex }: GruppoProps) {
   const { heads, head, dotted, stem } = item;
   const inchiostro = handInk(item.hand);
   const pieno = head !== 'whole' && head !== 'half';
-  const rx = 4.4;
-  const ry = 3.2;
+  const rx = 4.4 * S;
+  const ry = 3.2 * S;
 
   const us = heads.map((h) => h.u);
   const uAlto = Math.min(...us);
   const uBasso = Math.max(...us);
   const stemLen = 6.5 * HALF;
-  const stemX = stem === 'up' ? x + rx - 0.5 : x - rx + 0.5;
+  const stemX = stem === 'up' ? x + rx - 0.5 * S : x - rx + 0.5 * S;
   const stemY1 = stem === 'up' ? yAt(uBasso, top) : yAt(uAlto, top);
   const stemY2 = stem === 'up' ? yAt(uAlto, top) - stemLen : yAt(uBasso, top) + stemLen;
+  const yNomi = Math.max(top + STAFF_H + NAME_SIZE + 1.5, yAt(uBasso, top) + ry + NAME_SIZE);
 
   return (
     <G>
@@ -214,7 +239,7 @@ function Gruppo({ item, x, top, statuses, waitingIndex }: GruppoProps) {
           stato === 'missed' ? MISS
           : stato === 'hit' ? DONE
           : handInk(item.hand);
-        const cx = x + (testa.shifted ? rx * 2 - 1 : 0);
+        const cx = x + (testa.shifted ? rx * 2 - 1 * S : 0);
 
         return (
           <G key={testa.noteIndex}>
@@ -222,20 +247,20 @@ function Gruppo({ item, x, top, statuses, waitingIndex }: GruppoProps) {
             {testa.ledger.map((u) => (
               <Line
                 key={u}
-                x1={cx - rx - 2.6} x2={cx + rx + 2.6}
+                x1={cx - rx - 2.6 * S} x2={cx + rx + 2.6 * S}
                 y1={yAt(u, top)} y2={yAt(u, top)}
-                stroke={INK} strokeWidth={0.8} opacity={0.65}
+                stroke={INK} strokeWidth={0.8 * S} opacity={0.65}
               />
             ))}
 
             {/* Alone della nota attesa: dice "questa, adesso". */}
             {stato === 'waiting' ? (
-              <Circle cx={cx} cy={y} r={8.5} fill={colore} opacity={0.26} />
+              <Circle cx={cx} cy={y} r={8.5 * S} fill={colore} opacity={0.26} />
             ) : null}
 
             {testa.accidental ? (
               <G opacity={stato === 'hit' ? 0.6 : 1}>
-                <Alterazione x={cx - rx - 5} y={y} kind={testa.accidental} colore={colore} />
+                <Alterazione x={cx - rx - 5 * S} y={y} kind={testa.accidental} colore={colore} />
               </G>
             ) : null}
 
@@ -246,27 +271,31 @@ function Gruppo({ item, x, top, statuses, waitingIndex }: GruppoProps) {
               transform={`rotate(-22 ${cx} ${y})`}
               fill={pieno ? colore : PAPER}
               stroke={colore}
-              strokeWidth={pieno ? 0.8 : 1.5}
+              strokeWidth={(pieno ? 0.8 : 1.5) * S}
             />
 
-            {dotted ? <Circle cx={cx + rx + 3.4} cy={y - HALF} r={1.3} fill={colore} /> : null}
+            {dotted ? <Circle cx={cx + rx + 3.4 * S} cy={y - HALF} r={1.3 * S} fill={colore} /> : null}
           </G>
         );
       })}
 
       {head !== 'whole' ? (
-        <Line x1={stemX} x2={stemX} y1={stemY1} y2={stemY2} stroke={inchiostro} strokeWidth={1.1} />
+        <Line x1={stemX} x2={stemX} y1={stemY1} y2={stemY2} stroke={inchiostro} strokeWidth={1.1 * S} />
       ) : null}
 
       {head === 'eighth' || head === 'sixteenth' ? (
         <Coda x={stemX} y={stemY2} verso={stem} doppia={head === 'sixteenth'} colore={inchiostro} />
       ) : null}
 
-      {/* I nomi, sotto il rigo: la stessa informazione in lettere. */}
+      {/* I nomi, sotto il rigo: la stessa informazione in lettere.
+          Scendono sotto la testa più bassa del gruppo, non a distanza
+          fissa dal rigo: un accordo appoggiato sui tagli addizionali
+          esce dal pentagramma, e a distanza fissa i nomi gli finivano
+          addosso proprio quando l'accordo è quello da suonare. */}
       {heads.slice(0, MAX_NAMES).map((testa, i) => (
         <SvgText
           key={`n${testa.noteIndex}`}
-          x={x} y={top + STAFF_H + 9 + i * NAME_LINE}
+          x={x} y={yNomi + i * NAME_LINE}
           fontSize={NAME_SIZE} fontWeight="700"
           fill={inchiostro} textAnchor="middle"
           opacity={statuses.get(testa.noteIndex) === 'hit' ? 0.45 : 1}
@@ -286,7 +315,7 @@ function Coda({
   const d = (offset: number) =>
     `M ${x} ${y + offset * giu} C ${x + 5} ${y + (3 + offset) * giu} ${x + 5.5} ${y + (7 + offset) * giu} ${x + 2.5} ${y + (10 + offset) * giu}`;
   return (
-    <G>
+    <G transform={intorno(x, y)}>
       <Path d={d(0)} stroke={colore} strokeWidth={1.3} fill="none" />
       {doppia ? <Path d={d(4)} stroke={colore} strokeWidth={1.3} fill="none" /> : null}
     </G>
@@ -309,7 +338,7 @@ function Alterazione({
 }: { x: number; y: number; kind: Accidental; colore: string }) {
   if (kind === 'b') {
     return (
-      <G>
+      <G transform={intorno(x, y)}>
         <Line x1={x - 1.4} y1={y - 6.5} x2={x - 1.4} y2={y + 2.6} stroke={colore} strokeWidth={1.1} />
         <Path
           d={`M ${x - 1.4} ${y - 1.4} C ${x + 2.6} ${y - 3.4} ${x + 3} ${y + 1.4} ${x - 1.4} ${y + 2.6}`}
@@ -320,7 +349,7 @@ function Alterazione({
   }
   if (kind === 'n') {
     return (
-      <G>
+      <G transform={intorno(x, y)}>
         <Line x1={x - 1.8} y1={y - 5} x2={x - 1.8} y2={y + 2.2} stroke={colore} strokeWidth={1.1} />
         <Line x1={x + 1.8} y1={y - 2.2} x2={x + 1.8} y2={y + 5} stroke={colore} strokeWidth={1.1} />
         <Line x1={x - 1.8} y1={y - 1.4} x2={x + 1.8} y2={y - 2.4} stroke={colore} strokeWidth={1.4} />
@@ -330,7 +359,7 @@ function Alterazione({
   }
   // Diesis: due gambi verticali e due traverse in salita.
   return (
-    <G>
+    <G transform={intorno(x, y)}>
       <Line x1={x - 1.7} y1={y - 4.6} x2={x - 1.7} y2={y + 4.2} stroke={colore} strokeWidth={1} />
       <Line x1={x + 1.7} y1={y - 5} x2={x + 1.7} y2={y + 3.8} stroke={colore} strokeWidth={1} />
       <Line x1={x - 3.4} y1={y - 0.6} x2={x + 3.4} y2={y - 1.9} stroke={colore} strokeWidth={1.5} />
@@ -348,9 +377,11 @@ function Alterazione({
 function Chiave({ clef, top }: { clef: Clef; top: number }) {
   if (clef === 'treble') {
     // Il riccio si avvolge sulla riga del SOL (u = 6).
-    const sol = yAt(6, top);
+    // In unità base: la trasformazione qui sotto porta il riccio sulla
+    // riga del SOL del rigo vero, qualunque sia l'altezza scelta.
+    const sol = top + 6 * BASE_HALF;
     return (
-      <G>
+      <G transform={intorno(0, top)}>
         <Path
           d={`M 20.5 ${top - 7}
               C 13.5 ${top + 2} 12.4 ${top + 11} 17.4 ${top + 17}
@@ -369,9 +400,9 @@ function Chiave({ clef, top }: { clef: Clef; top: number }) {
   }
   // Chiave di basso: il ricciolo parte dalla riga del FA (u = 2) e i
   // due punti la stringono sopra e sotto.
-  const fa = yAt(2, top);
+  const fa = top + 2 * BASE_HALF;
   return (
-    <G>
+    <G transform={intorno(0, top)}>
       <Path
         d={`M 12.5 ${fa - 4.5}
             C 18.5 ${fa - 7} 23.5 ${fa - 3} 23.5 ${fa + 3}
@@ -379,8 +410,8 @@ function Chiave({ clef, top }: { clef: Clef; top: number }) {
         stroke={INK} strokeWidth={2.1} fill="none" strokeLinecap="round"
       />
       <Circle cx={12.5} cy={fa - 4.5} r={2.2} fill={INK} />
-      <Circle cx={26.5} cy={fa - HALF} r={1.3} fill={INK} />
-      <Circle cx={26.5} cy={fa + HALF} r={1.3} fill={INK} />
+      <Circle cx={26.5} cy={fa - BASE_HALF} r={1.3} fill={INK} />
+      <Circle cx={26.5} cy={fa + BASE_HALF} r={1.3} fill={INK} />
     </G>
   );
 }

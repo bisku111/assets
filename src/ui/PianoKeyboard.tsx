@@ -171,7 +171,11 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
-  keyLabel: { fontSize: 10 },
+  // I nomi dei tasti si accendono solo quando chi suona li chiede, e
+  // anche allora restano una didascalia: sui tasti neri si ripetono a
+  // ogni ottava, e a pieno contrasto erano la cosa più vistosa dello
+  // schermo, più delle note da suonare.
+  keyLabel: { fontSize: 8.5 },
   blackKeyLabel: {
     fontSize: 9,
     width: 44,

@@ -292,15 +292,19 @@ function PlayStage({
     <SafeAreaView style={styles.schermo} edges={['top', 'bottom']}>
       {/* ---- Barra dei comandi ---- */}
       <View style={styles.barra}>
-        <Comando label="Esci" onPress={concludi} />
-        <View style={{ flex: 1, marginHorizontal: spacing.md }}>
-          <Text variant="caption" numberOfLines={1}>{song.title}</Text>
-          <Text variant="caption" tone="faint" numberOfLines={1}>
+        <Comando label="Esci" onPress={concludi} barra />
+        <View style={{ flex: 1, marginHorizontal: spacing.sm }}>
+          <Text variant="caption" numberOfLines={1} style={styles.titolo}>{song.title}</Text>
+          <Text variant="caption" tone="faint" numberOfLines={1} style={styles.metadati}>
             {sezioneCorrente?.name ?? 'Tutto il brano'} · {ratePct}% · {Math.round((song.bpm * ratePct) / 100)} BPM
           </Text>
         </View>
-        <Comando label={inPausa ? 'Riprendi' : 'Pausa'} onPress={() => (inPausa ? resume() : pause())} />
-        <Comando label="Ripeti" onPress={restart} />
+        <Comando
+          label={inPausa ? 'Riprendi' : 'Pausa'}
+          onPress={() => (inPausa ? resume() : pause())}
+          barra
+        />
+        <Comando label="Ripeti" onPress={restart} barra />
       </View>
 
       <View style={{ paddingHorizontal: spacing.md }}>
@@ -439,9 +443,18 @@ function PlayStage({
  */
 const ANTICIPO_DITA_MS = 1600;
 
+/**
+ * `barra` abbassa il pulsante di un paio di pixel: in testa allo
+ * schermo si premono tre bottoni e si legge il titolo, mentre i chip
+ * sotto si premono continuamente mentre si studia e meritano il
+ * bersaglio più generoso.
+ */
 function Comando({
-  label, onPress, attivo, colore,
-}: { label: string; onPress: () => void; attivo?: boolean; colore?: string }) {
+  label, onPress, attivo, colore, barra,
+}: {
+  label: string; onPress: () => void;
+  attivo?: boolean; colore?: string; barra?: boolean;
+}) {
   return (
     <Pressable
       onPress={onPress}
@@ -450,28 +463,50 @@ function Comando({
       accessibilityState={{ selected: attivo }}
       style={({ pressed }) => [
         styles.comando,
+        barra ? styles.comandoBarra : null,
         attivo ? { backgroundColor: colore ?? colors.primary, borderColor: colore ?? colors.primary } : null,
         pressed ? { opacity: 0.7 } : null,
       ]}
     >
-      <Text variant="label" style={{ color: attivo ? colors.background : colors.textMuted }}>{label}</Text>
+      <Text
+        variant="label"
+        style={[styles.etichettaComando, { color: attivo ? colors.background : colors.textMuted }]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   schermo: { flex: 1, backgroundColor: colors.background },
-  barra: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  /**
+   * Fascia superiore compatta.
+   *
+   * Non è un vezzo estetico: ogni pixel tolto qui va al pentagramma,
+   * che è la cosa che si guarda mentre si suona. I valori sono locali
+   * a questa schermata e non toccano i token condivisi, perché una
+   * riduzione così aggressiva altrove sarebbe illeggibile.
+   */
+  barra: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: 4 },
+  // Interlinea esplicita: senza, le due righe si portano dietro
+  // l'altezza predefinita del font e la fascia non si abbassa.
+  titolo: { fontSize: 11, lineHeight: 13 },
+  metadati: { fontSize: 10, lineHeight: 12 },
   regolazioni: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs,
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
+    flexDirection: 'row', flexWrap: 'wrap', gap: 3,
+    paddingHorizontal: spacing.md, paddingVertical: 4,
   },
   comando: {
-    paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.pill,
+    paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.pill,
     borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface,
-    minHeight: 38, justifyContent: 'center',
+    // 32 px: sotto si comincia a sbagliare chip, e questi si premono a
+    // brano in corso. I 38 di prima costavano dodici pixel per riga.
+    minHeight: 32, justifyContent: 'center',
   },
-  feedback: { minHeight: 44, justifyContent: 'center', paddingVertical: spacing.sm },
+  comandoBarra: { minHeight: 30, paddingVertical: 2 },
+  etichettaComando: { fontSize: 11, lineHeight: 14 },
+  feedback: { minHeight: 34, justifyContent: 'center', paddingVertical: 4 },
   contatori: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingHorizontal: spacing.lg, paddingTop: spacing.sm,
