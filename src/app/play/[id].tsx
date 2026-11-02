@@ -458,6 +458,7 @@ function Comando({
   return (
     <Pressable
       onPress={onPress}
+      hitSlop={barra ? TOCCO_BARRA : TOCCO_CHIP}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ selected: attivo }}
@@ -478,6 +479,28 @@ function Comando({
   );
 }
 
+/**
+ * Quanto il dito puo' sbagliare.
+ *
+ * I chip sono alti 32 px disegnati, ma si premono a brano in corso e
+ * meritano piu' tolleranza. `hitSlop` la aggiunge senza spostare un
+ * pixel di quello che si vede.
+ *
+ * I numeri non sono arrotondati a caso: le righe di chip distano 41 px
+ * da bordo a bordo, quindi 4 px sopra e 4 sotto portano l'area a 40 px
+ * e lasciano ancora 1 px fra una riga e la successiva. Allargare
+ * ancora farebbe accavallare le aree di due chip diversi, e un tocco
+ * nella zona comune verrebbe assegnato in modo imprevedibile: peggio
+ * di un bersaglio piccolo e' un bersaglio che preme il comando
+ * sbagliato. Ai lati basta 1 px, meta' dei 3 che separano le colonne.
+ *
+ * In testa c'e' piu' margine verso l'alto, dove non c'e' nient'altro
+ * da premere, e sotto solo quanto serve a toccare senza invadere la
+ * prima riga di chip.
+ */
+const TOCCO_CHIP = { top: 4, bottom: 4, left: 1, right: 1 } as const;
+const TOCCO_BARRA = { top: 8, bottom: 3, left: 0, right: 0 } as const;
+
 const styles = StyleSheet.create({
   schermo: { flex: 1, backgroundColor: colors.background },
   /**
@@ -494,8 +517,13 @@ const styles = StyleSheet.create({
   titolo: { fontSize: 11, lineHeight: 13 },
   metadati: { fontSize: 10, lineHeight: 12 },
   regolazioni: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 3,
-    paddingHorizontal: spacing.md, paddingVertical: 4,
+    flexDirection: 'row', flexWrap: 'wrap',
+    // Le colonne restano strette, le righe si distanziano: e' solo
+    // nello spazio fra le righe che l'area di tocco puo' crescere
+    // senza accavallarsi a quella del chip sopra o sotto. La fascia
+    // resta alta esattamente quanto prima (1 + 32 + 9 + 32 + 1 = 75).
+    columnGap: 3, rowGap: 9,
+    paddingHorizontal: spacing.md, paddingVertical: 1,
   },
   comando: {
     paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.pill,

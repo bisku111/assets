@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
+import { recognizeTriad, triadLabelIt } from '../core/music/chord';
 import { noteNameIt } from '../core/music/note';
 import type { Accidental, Clef, StaffItem, StaffScore } from '../core/notation/staff';
 import { barLines, keySignaturePositions } from '../core/notation/staff';
@@ -59,6 +60,18 @@ const intorno = (x: number, y: number) =>
 const NAME_LANE = 18;
 const NAME_SIZE = 5.2;
 const NAME_LINE = 5.6;
+
+/**
+ * Il nome dell'accordo, quando il gruppo ne forma uno riconoscibile.
+ *
+ * Sta sopra i nomi delle singole note ed e' piu' grande di loro: e'
+ * l'informazione che serve davvero, mentre le tre note ripetute sono
+ * il dettaglio. Entra nella corsia gia' esistente, quindi il
+ * pentagramma non cresce di un pixel e nessun accordo riconosciuto fa
+ * saltare il layout.
+ */
+const CHORD_SIZE = 7.5;
+const CHORD_LINE = 8;
 const MAX_NAMES = 3;
 
 /**
@@ -225,7 +238,23 @@ function Gruppo({ item, x, top, statuses, waitingIndex }: GruppoProps) {
   const stemX = stem === 'up' ? x + rx - 0.5 * S : x - rx + 0.5 * S;
   const stemY1 = stem === 'up' ? yAt(uBasso, top) : yAt(uAlto, top);
   const stemY2 = stem === 'up' ? yAt(uAlto, top) - stemLen : yAt(uBasso, top) + stemLen;
-  const yNomi = Math.max(top + STAFF_H + NAME_SIZE + 1.5, yAt(uBasso, top) + ry + NAME_SIZE);
+  /*
+   * Si riusa `heads`: e' gia' l'insieme delle note che il renderer
+   * considera simultanee, quindi non serve nessun ragionamento sui
+   * millisecondi per sapere cosa suona insieme a cosa.
+   */
+  const triade = recognizeTriad(heads.map((h) => h.midi));
+
+  /*
+   * Lo stacco si misura sul corpo di cio' che si scrive per primo, non
+   * su quello dei nomi: il nome dell'accordo e' piu' alto, e calcolare
+   * lo spazio sul testo piccolo glielo faceva finire dentro la testa
+   * di nota piu' bassa ogni volta che l'accordo poggiava in fondo al
+   * rigo.
+   */
+  const primoCorpo = triade ? CHORD_SIZE : NAME_SIZE;
+  const yNomi = Math.max(top + STAFF_H + primoCorpo + 1.5, yAt(uBasso, top) + ry + primoCorpo);
+  const yNote = yNomi + (triade ? CHORD_LINE : 0);
 
   return (
     <G>
@@ -287,6 +316,16 @@ function Gruppo({ item, x, top, statuses, waitingIndex }: GruppoProps) {
         <Coda x={stemX} y={stemY2} verso={stem} doppia={head === 'sixteenth'} colore={inchiostro} />
       ) : null}
 
+      {triade ? (
+        <SvgText
+          x={x} y={yNomi}
+          fontSize={CHORD_SIZE} fontWeight="700"
+          fill={inchiostro} textAnchor="middle"
+        >
+          {triadLabelIt(triade)}
+        </SvgText>
+      ) : null}
+
       {/* I nomi, sotto il rigo: la stessa informazione in lettere.
           Scendono sotto la testa più bassa del gruppo, non a distanza
           fissa dal rigo: un accordo appoggiato sui tagli addizionali
@@ -295,7 +334,7 @@ function Gruppo({ item, x, top, statuses, waitingIndex }: GruppoProps) {
       {heads.slice(0, MAX_NAMES).map((testa, i) => (
         <SvgText
           key={`n${testa.noteIndex}`}
-          x={x} y={yNomi + i * NAME_LINE}
+          x={x} y={yNote + i * NAME_LINE}
           fontSize={NAME_SIZE} fontWeight="700"
           fill={inchiostro} textAnchor="middle"
           opacity={statuses.get(testa.noteIndex) === 'hit' ? 0.45 : 1}
